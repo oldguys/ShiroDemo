@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.hrh.module.sys.dao.jpas.SessionEntityMapper">
+
+	<sql id="all_session_entity_columns" >
+		${prefix}.id,
+		${prefix}.session_id,
+		${prefix}.username,
+		${prefix}.data,
+		${prefix}.expire_time,
+		${prefix}.create_time,
+		${prefix}.status
+	</sql>
+
+	<select id="findActiveSessionByUsername" parameterType="string" resultType="SessionEntity">
+		SELECT
+		<include refid="all_session_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		sys_session_entity a
+		WHERE
+		a.`status` = 1
+		AND a.expire_time > NOW()
+		AND a.username = #{username}
+	</select>
+
+	<select id="findAll" resultType="UserEntity">
+		SELECT
+		<include refid="all_session_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		sys_session_entity;
+	</select>
+
+	<update id="updateStatusBatch">
+		UPDATE
+		sys_session_entity
+		SET status = #{status}
+		WHERE
+			id
+		<foreach collection="idCollection" item="item" separator="," open="IN (" close=")">
+			#{item}
+		</foreach>
+	</update>
+
+</mapper>

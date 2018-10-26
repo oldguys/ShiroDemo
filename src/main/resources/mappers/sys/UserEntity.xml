@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.hrh.module.sys.dao.jpas.UserEntityMapper">
+
+	<sql id="all_user_columns" >
+		${prefix}.id,
+		${prefix}.`password`,
+		${prefix}.username,
+		${prefix}.status,
+		${prefix}.create_time
+	</sql>
+
+	<select id="findByUsername" parameterType="string" resultType="UserEntity">
+		SELECT
+		<include refid="all_user_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		sys_user_entity a
+		WHERE
+		a.username = #{username}
+	</select>
+
+	<select id="findAll" resultType="UserEntity">
+		SELECT * FROM sys_user_entity;
+	</select>
+
+</mapper>
