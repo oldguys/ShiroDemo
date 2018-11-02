@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.hrh.module.sys.dao.jpas.MenuMapper">
+
+	<sql id="table_name">sys_menu</sql>
+
+	<sql id="all_entity_columns">
+		${prefix}.id,
+		${prefix}.`name`,
+		${prefix}.url,
+		${prefix}.create_time,
+		${prefix}.parent_id,
+		${prefix}.`order`,
+		${prefix}.icon,
+		${prefix}.`status`
+	</sql>
+
+	<select id="findAllByStatus" parameterType="integer" resultType="Menu">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		<include refid="table_name"/> a
+		<where>
+			<choose>
+				<when test="status != null">
+					a.`status` = #{status}
+				</when>
+			</choose>
+		</where>
+	</select>
+
+	<select id="findByRid" parameterType="long" resultType="Menu">
+		SELECT
+			<include refid="all_entity_columns">
+				<property name="prefix" value="b"/>
+			</include>
+		FROM
+			sys_menu_role a
+		INNER JOIN <include refid="table_name"/>  b ON a.menu_id = b.id
+		WHERE
+			a.role_id = #{id}
+		AND b.`status` = 1
+	</select>
+
+	<insert id="save" parameterType="Menu" keyProperty="id" useGeneratedKeys="true">
+		INSERT <include refid="table_name"/>
+		(
+			`name`,
+			url,
+			create_time,
+			parent_id,
+			`order`,
+			icon,
+			`status`
+		)
+		VALUES (
+			#{name},
+			#{url},
+			#{createTime},
+			#{parentId},
+			#{order},
+			#{icon},
+			#{status}
+		)
+	</insert>
+
+
+</mapper>

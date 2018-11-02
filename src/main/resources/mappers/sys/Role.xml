@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.hrh.module.sys.dao.jpas.RoleMapper">
+
+	<sql id="table_name">sys_role</sql>
+
+	<sql id="all_entity_columns">
+		${prefix}.id,
+		${prefix}.`name`,
+		${prefix}.create_time,
+		${prefix}.`status`,
+		${prefix}.type,
+		${prefix}.role_flag,
+		${prefix}.description
+	</sql>
+
+	<resultMap id="RoleWithMenus" type="Role">
+		<id column="id" property="id"/>
+		<collection property="menuList" column="id" select="com.example.hrh.module.sys.dao.jpas.MenuMapper.findByRid"/>
+	</resultMap>
+
+	<select id="findOneWithMenus" parameterType="long" resultMap="RoleWithMenus">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		<include refid="table_name"/> a
+		WHERE
+		a.id = #{id}
+	</select>
+
+	<select id="findOne" parameterType="long" resultType="Role">
+		SELECT
+			<include refid="all_entity_columns">
+				<property name="prefix" value="a"/>
+			</include>
+		FROM
+			<include refid="table_name"/> a
+		WHERE
+			a.id = #{id}
+	</select>
+
+	<select id="findAllByStatus" parameterType="int" resultType="Role">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		<include refid="table_name"/> a
+		<where>
+			<choose>
+				<when test="status != null">
+					`status` = #{status}
+				</when>
+			</choose>
+		</where>
+	</select>
+
+
+	<select id="findByFlag" parameterType="string" resultType="Role">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		<include refid="table_name"/> a
+		WHERE
+		role_flag = #{flag}
+	</select>
+
+	<select id="findByGroupId" parameterType="long" resultType="Role">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="b"/>
+		</include>
+		FROM
+		sys_role_user_group a
+		LEFT JOIN <include refid="table_name"/> b ON a.role_id = b.id
+		WHERE
+		b.`status` = 1
+		AND a.user_group_id = #{groupId}
+	</select>
+
+
+	<insert id="save" parameterType="Role" keyProperty="id" useGeneratedKeys="true">
+		INSERT <include refid="table_name"/>
+		(
+		`name`,
+		create_time,
+		`status`,
+		`type`,
+		role_flag,
+		description
+		)
+		VALUES (
+		#{name},
+		#{createTime},
+		#{status},
+		#{type},
+		#{roleFlag},
+		#{description}
+		)
+	</insert>
+
+	<update id="updateStatus">
+		UPDATE
+			<include refid="table_name"/>
+		SET
+			`status` = #{status}
+		WHERE
+			id = #{id}
+	</update>
+
+	<update id="update" parameterType="Role">
+		UPDATE
+			<include refid="table_name"/>
+		SET
+			`name` = #{name},
+			`status` = #{status},
+			role_flag = #{roleFlag},
+			`type` = #{type},
+			description = #{description}
+		WHERE
+			id = #{id}
+	</update>
+
+	<insert id="associateMenus">
+		INSERT sys_menu_role
+		(menu_id,role_id)
+		VALUES
+		<foreach collection="idSet" item="menuId" separator=",">
+			(#{menuId},#{id})
+		</foreach>
+	</insert>
+
+	<delete id="removeMenus" parameterType="long">
+		DELETE FROM sys_menu_role WHERE role_id = #{id}
+	</delete>
+
+
+</mapper>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>字典管理</title>
+    <span th:include="commons/templates :: common-css-js"></span>
+    <span th:include="commons/templates :: init-menu"></span>
+    <span th:include="commons/templates :: bootstrap-table"></span>
+    <span th:include="commons/templates :: bootstrap-treeview"></span>
+</head>
+<body>
+<div th:replace="commons/templates :: header"></div>
+<div class="container">
+    <div class="page-header">
+        <h3>字典管理
+            <button class="btn btn-default pull-right" id="add-btn"><i
+                    class="glyphicon glyphicon-plus"></i> 新增
+            </button>
+        </h3>
+    </div>
+    <table id="records-info"></table>
+</div>
+
+<!-- 编辑框 -->
+<div class="modal fade" id="edit-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="modal-title">编辑</h4>
+            </div>
+            <div class="modal-body">
+                <form id="entity-form">
+                    <div class="form-group">
+                        <label class="control-label">ID:</label>
+                        <input type="text" class="form-control" name="id" id="entity-id" readonly>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">类型:</label>
+                        <select class="form-control" name="type" id="entity-type">
+                        </select>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">描述:</label>
+                        <textarea type="text" class="form-control" id="entity-description"
+                                  name="description"></textarea>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">字段名:</label>
+                        <input type="text" class="form-control" name="filedName" id="entity-filedName"  autocomplete="off">
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">字段值:</label>
+                        <input type="text" class="form-control" name="filedValue" id="entity-filedValue"
+                               autocomplete="off">
+                        <span class="help-block"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">创建时间:</label>
+                        <input type="text" class="form-control" id="entity-createTime"
+                               autocomplete="off" readonly>
+                        <span class="help-block"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-warning" id="btn-modify">更新</button>
+                <button type="button" class="btn btn-success" id="btn-persist">保存</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!-- 编辑框 -->
+<div class="modal fade" id="info-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">消息</h4>
+            </div>
+            <div class="modal-body" id="msg-box">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script th:inline="text">
+
+    var typeDataMap ={}
+    /**
+     *  初始化类别
+     */
+    $.get("[[@{/dictionary/type}]]", function (data) {
+        typeDataMap = data;
+        var str = "";
+
+        for (var key in data) {
+            str += "<option value='" + key + "'>" + data[key] + "</option>"
+        }
+        $("#entity-type").append(str);
+        $('#records-info').bootstrapTable("refresh");
+    })
+
+
+    $('#records-info').bootstrapTable({
+        url: "[[@{/dictionary/all}]]",//请求数据url
+        showRefresh: true,
+        smartDisplay: true,
+        showToggle: true,
+        paginationPreText: '上一页',
+        paginationNextText: '下一页',
+        pagination: true,//分页
+        paginationVAlign: 'bottom',
+        pageNumber: 1,
+        pageSize: 30,
+        pageList: [10, 20, 30, 50, 'all'],//分页步进值
+        search: true, //显示搜索框
+        columns: [
+            {
+                field: 'id',
+                title: '编号',
+                sortable: true,
+            },
+            {
+                field: 'type',
+                title: '类型',
+                sortable: true,
+                formatter: function (value, row, index) { // 单元格格式化函数
+                    var result = typeDataMap[value];
+                    if(result !=undefined){
+                        return result ;
+                    }
+                    return value;
+                }
+            },
+            {
+                field: 'description',
+                title: '描述',
+                sortable: true,
+                formatter: function (value, row, index) {
+                    return "<p>" + value + "</p>";
+                }
+            },
+            {
+                field: 'filedName',
+                title: '字段名',
+                sortable: true,
+                formatter: function (value, row, index) {
+                    return "<p>" + value + "</p>";
+                }
+            },
+            {
+                field: 'filedValue',
+                title: '字段值',
+                sortable: true,
+
+            },
+            {
+                field: 'createTime',
+                title: '创建时间',
+                sortable: true,
+            },
+            {
+                title: '编辑',
+                width: '110px',
+                formatter: function (value, row, index) { // 单元格格式化函数
+
+                    var id = row['id'];
+                    var str =
+                        ' <a class="btn btn-default btn-edit" title="编辑内容" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                        '  <i class="glyphicon glyphicon-pencil"></i>  ' +
+                        ' </a>  ';
+                    if (row['status'] == 1) {
+                        str += '<a class="btn btn-default btn-state" title="编辑状态" data-state="0" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                            '  <i class="glyphicon glyphicon-ok text-success"></i>  ' +
+                            ' </a>  ';
+                    } else {
+                        str += ' <a class="btn btn-default btn-state" title="编辑状态" data-state="1" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                            '  <i class="glyphicon glyphicon-remove text-danger"></i>  ' +
+                            ' </a>  ';
+                    }
+                    return str;
+                }
+            },
+        ]
+    })
+
+    /**
+     *  编辑更新状态
+     */
+    $("#records-info").on("click", ".btn-state", function () {
+        var state = $(this).attr("data-state");
+        var id = $(this).attr("data-id");
+        $.post("[[@{/dictionary/}]]" + id + "/" + state, function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+            }
+        })
+    })
+
+    /**
+     *  新增 =============================
+     */
+    $("#add-btn").click(function () {
+        $("#edit-panel").modal("show");
+        $($("#entity-id").parent(".form-group")[0]).hide();
+        $($("#entity-createTime").parent(".form-group")[0]).hide();
+        $("#btn-modify").hide();
+        $("#btn-persist").show();
+
+        $("#entity-filedName").val("");
+        $("#entity-filedValue").val("");
+        $("#entity-type").val("");
+        $("#entity-description").val("");
+
+        $("#modal-title").text("新建字典");
+    })
+
+    $("#btn-persist").click(function () {
+        $.post("[[@{/dictionary/addition}]]", $("#entity-form").serializeArray(), function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                $("#edit-panel").modal("hide");
+            }
+        })
+    })
+    /**
+     *  更新 =============================
+     */
+    $("#records-info").on("click", ".btn-edit", function () {
+        $("#edit-panel").modal("show");
+        $($("#entity-id").parent(".form-group")[0]).show();
+        $($("#entity-createTime").parent(".form-group")[0]).show();
+        $("#btn-modify").show();
+        $("#btn-persist").hide();
+
+        $("#modal-title").text("编辑字典");
+
+        var id = $(this).attr("data-id");
+        $.get("[[@{/dictionary/}]]" + id , function (data) {
+            console.log(data);
+            if (data['id'] != undefined) {
+                $("#entity-id").val(data['id']).show();
+                $("#entity-createTime").val(data['createTime']).show();
+
+                $("#entity-filedName").val(data['filedName']);
+                $("#entity-filedValue").val(data['filedValue']);
+                $("#entity-type").val(data['type']);
+                $("#entity-description").val(data['description']);
+
+                $("#btn-modify").show();
+                $("#btn-addition").hide();
+                $("#add-panel").modal("show");
+            }
+        })
+    })
+
+    $("#btn-modify").click(function () {
+        $.post("[[@{/dictionary/modify}]]", $("#entity-form").serializeArray(), function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                $("#edit-panel").modal("hide");
+
+                // 更新提醒
+                $("#msg-box").html("<div class='text-success'>更新成功！</div>")
+                $("#info-panel").modal("show");
+            }
+        }).error(function (data, json) {
+            var message = data['responseJSON']['message'];
+
+            message = message != undefined ? message : "系统异常，请联系管理员！";
+            $("#msg-box").html("<div class='text-danger'>" + message + "</div>")
+            $("#info-panel").modal("show");
+        }, "json");
+    })
+
+
+
+</script>
+</body>
+</html>

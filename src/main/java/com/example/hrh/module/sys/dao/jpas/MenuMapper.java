@@ -2,10 +2,14 @@ package com.example.hrh.module.sys.dao.jpas;/**
  * Created by Administrator on 2018/10/17 0017.
  */
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+import com.example.hrh.module.common.dao.jpas.BaseEntityMapper;
 import com.example.hrh.module.sys.dao.entities.Menu;
-import com.example.hrh.module.sys.dao.entities.Role;
+
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
 
 /**
  * @Description:
@@ -13,6 +17,19 @@ import org.springframework.stereotype.Repository;
  * @CreateTime: 2018-10-2018/10/17 0017 08:57
  */
 @Repository
-public interface MenuMapper extends BaseMapper<Menu>{
+public interface MenuMapper extends BaseEntityMapper<Menu> {
 
+    /**
+     *  通过用户ID 获取目录
+     * @param userId
+     * @return
+     */
+    List<Menu> findAllByUserId(String userId);
+
+    /**
+     *  通过角色ID 获取角色目录
+     * @param rid
+     * @return
+     */
+    List<Menu> findByRid(Long rid);
 }

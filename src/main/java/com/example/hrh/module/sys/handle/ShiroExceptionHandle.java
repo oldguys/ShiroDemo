@@ -1,8 +1,6 @@
-package com.example.hrh.module.sys.handle;/**
- * Created by Administrator on 2018/10/23 0023.
- */
+package com.example.hrh.module.sys.handle;
 
-import org.apache.shiro.authz.AuthorizationException;
+
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.springframework.http.HttpStatus;

@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户组管理</title>
+    <span th:include="commons/templates :: common-css-js"></span>
+    <span th:include="commons/templates :: init-menu"></span>
+    <span th:include="commons/templates :: bootstrap-table"></span>
+</head>
+<body>
+<div th:replace="commons/templates :: header"></div>
+<div class="container">
+    <div class="page-header">
+        <h3>用户组管理
+            <button class="btn btn-default pull-right" id="add-btn"><i
+                    class="glyphicon glyphicon-plus"></i> 新增
+            </button>
+        </h3>
+    </div>
+    <table id="records-info"></table>
+
+    <!--<div class="row">-->
+        <!--<div class="col-md-9">-->
+            <!--<div class="panel panel-default">-->
+                <!--<div class="panel-body">-->
+                    <!--<div class="row">-->
+                        <!--<div class="col-md-3">-->
+                            <!--<label>ID:</label>&nbsp;&nbsp;ssss-->
+                        <!--</div>-->
+                        <!--<div class="col-md-3">-->
+                            <!--<label>名称:</label>&nbsp;&nbsp;ssss-->
+                        <!--</div>-->
+                        <!--<div class="col-md-3">-->
+                            <!--<label>类别:</label>&nbsp;&nbsp;ssss-->
+                        <!--</div>-->
+                        <!--<div class="col-md-3">-->
+                            <!--<label>用户数:</label>&nbsp;&nbsp;ssss-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="row">-->
+                        <!--<div class="col-md-9">-->
+                            <!--<label>描述:</label>&nbsp;&nbsp;ssss-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<hr>-->
+                    <!--<div class="row">-->
+                        <!--<div class="col-md-9">-->
+                            <!--<label>角色管理:</label>-->
+                            <!--<div style="padding-left: 10px;">-->
+                                <!--<div>-->
+                                    <!--<label>资源角色:</label>-->
+                                    <!--<div style="padding-left: 10px;">sss&nbsp;ssss</div>-->
+                                <!--</div>-->
+                                <!--<div>-->
+                                    <!--<label>目录角色:</label>-->
+                                    <!--<div style="padding-left: 10px;">sss&nbsp;ssss</div>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+
+</div>
+
+<!-- 编辑框 -->
+<div class="modal fade" id="edit-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="modal-title">编辑</h4>
+            </div>
+            <div class="modal-body">
+                <form id="entity-form">
+                    <div class="form-group">
+                        <label class="control-label">ID:</label>
+                        <input type="text" class="form-control" name="id" id="entity-id" readonly>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">用户组名称:</label>
+                        <input type="text" class="form-control" name="groupName" id="entity-groupName"
+                               autocomplete="off">
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">类型:</label>
+                        <select class="form-control" name="type" id="entity-type">
+                        </select>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">描述:</label>
+                        <textarea type="text" class="form-control" id="entity-description"
+                                  name="description"></textarea>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">创建时间:</label>
+                        <input type="text" class="form-control" id="entity-createTime"
+                               autocomplete="off" readonly>
+                        <span class="help-block"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-warning" id="btn-modify">更新</button>
+                <button type="button" class="btn btn-success" id="btn-persist">保存</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!-- 权限控制 -->
+<div class="modal fade" id="perm-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">角色配置</h4>
+            </div>
+            <div class="modal-body">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-3" id="msg-panel-id">ID:1111</div>
+                            <div class="col-md-6" id="msg-panel-name">名称:sss</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" style="background-color: #ffffff">
+                                <div class="panel-title h2">角色列表 <a class="btn btn-sm text-danger pull-right"
+                                                                    style="margin-top: -5px;margin-right: -10px;"
+                                                                    th:href="@{/view/perm/role/page}" target="_blank"><i
+                                        class="glyphicon glyphicon-plus"></i> 新增</a></div>
+                            </div>
+                            <div class="panel-body" id="role-list">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <!-- style="background-color: #F5F5F5" -->
+                        <div class="panel panel-default">
+                            <div class="panel-heading" style="background-color: #ffffff">
+                                <h3 class="panel-title">已选标签</h3>
+                            </div>
+                            <div class="panel-body" id="tags-selected-panel">
+                            </div>
+                            <form id="entity-select-form" style="display: none">
+                                <input name="id" id="entity-selected-id">
+                                <input name="roleIdSet" id="entity-roleIdSet">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-warning" id="btn-perm-submit">更新权限</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!-- 用户管理 -->
+<div class="modal fade" id="user-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">用户配置</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-3" id="user-group-id"></div>
+                                    <div class="col-md-3" id="user-group-name"></div>
+                                    <input id="group-id" type="hidden">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="h5">所有用户:</div>
+                                <table id="record-users"></table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="h5">已选用户:</div>
+                                <table id="record-selected-users"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<!-- 消息 -->
+<div class="modal fade" id="info-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body" id="msg-box">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script th:inline="text">
+
+    var typeDataMap = {}
+    /**
+     *  初始化类别
+     */
+    $.get("[[@{/userGroup/type}]]", function (data) {
+        typeDataMap = data;
+        var str = "";
+        for (var key in data) {
+            str += "<option value='" + key + "'>" + data[key] + "</option>"
+        }
+        $("#entity-type").append(str);
+        $('#records-info').bootstrapTable("refresh");
+    })
+
+    $('#records-info').bootstrapTable({
+        url: "[[@{/userGroup/all}]]",//请求数据url
+        showRefresh: true,
+        smartDisplay: true,
+        showToggle: true,
+        paginationPreText: '上一页',
+        paginationNextText: '下一页',
+        pagination: true,//分页
+        paginationVAlign: 'bottom',
+        pageNumber: 1,
+        pageSize: 5,
+        pageList: [10, 20, 30, 50, 'all'],//分页步进值
+        search: true, //显示搜索框
+        detailView: true,
+        detailFormatter: function (index, row, element) {
+
+            var id = row['id']
+
+            $.get("[[@{/userGroup/}]]" + id + "/all", function (data) {
+                if (data != undefined) {
+                    setDetail(data);
+                }
+            })
+
+            return "<div id='detail-panel-" + id + "'></div>";
+        },
+        onLoadSuccess: function (data) {
+
+            // 更改 展开样式
+            var list = $("#records-info").find(".detail-icon");
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                $(item).css("color", "#555");
+            }
+
+        },
+        columns: [
+            {
+                field: 'id',
+                title: '编号',
+                sortable: true,
+            },
+            {
+                field: 'groupName',
+                title: '组名',
+                width: '25%',
+                sortable: true,
+                formatter: function (value, row, index) {
+                    return "<p>" + value + "</p>";
+                }
+            },
+            {
+                field: 'description',
+                title: '描述',
+                sortable: true,
+
+            },
+            {
+                field: 'type',
+                title: '类型',
+                sortable: true,
+                formatter: function (value, row, index) { // 单元格格式化函数
+                    var result = typeDataMap[value];
+                    if (result != undefined) {
+                        return result;
+                    }
+                    return value;
+                }
+            },
+            {
+                field: 'createTime',
+                title: '创建时间',
+                sortable: true,
+            },
+            {
+                title: '编辑',
+                width: '200px',
+                formatter: function (value, row, index) { // 单元格格式化函数
+
+                    var id = row['id'];
+                    var str =
+                        ' <a class="btn btn-default btn-user" title="配置人员" data-id="' + id + '"  >  ' +
+                        '  <i class="glyphicon glyphicon glyphicon glyphicon-user"></i>  ' +
+                        ' </a>  ' +
+                        ' <a class="btn btn-default btn-manage" title="管理角色" data-id="' + id + '"  >  ' +
+                        '  <i class="glyphicon glyphicon glyphicon-list"></i>  ' +
+                        ' </a>  ' +
+                        ' <a class="btn btn-default btn-edit" title="编辑内容" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                        '  <i class="glyphicon glyphicon-pencil"></i>  ' +
+                        ' </a>  ';
+                    if (row['status'] == 1) {
+                        str += '<a class="btn btn-default btn-state" title="编辑状态" data-state="0" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                            '  <i class="glyphicon glyphicon-ok text-success"></i>  ' +
+                            ' </a>  ';
+                    } else {
+                        str += ' <a class="btn btn-default btn-state" title="编辑状态" data-state="1" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                            '  <i class="glyphicon glyphicon-remove text-danger"></i>  ' +
+                            ' </a>  ';
+                    }
+                    return str;
+                }
+            },
+        ]
+    })
+
+    /**
+     *  编辑更新状态
+     */
+    $("#records-info").on("click", ".btn-state", function () {
+        var state = $(this).attr("data-state");
+        var id = $(this).attr("data-id");
+        $.post("[[@{/userGroup/}]]" + id + "/" + state, function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+            }
+        })
+    })
+
+    /**
+     *  新增 =============================
+     */
+    $("#add-btn").click(function () {
+        $("#edit-panel").modal("show");
+        $($("#entity-id").parent(".form-group")[0]).hide();
+        $($("#entity-createTime").parent(".form-group")[0]).hide();
+        $("#btn-modify").hide();
+        $("#btn-persist").show();
+
+        $("#entity-groupName").val("");
+        $("#entity-type").val("");
+        $("#entity-description").val("");
+        $("#modal-title").text("新建用户组");
+    })
+
+    $("#btn-persist").click(function () {
+        $.post("[[@{/userGroup/addition}]]", $("#entity-form").serializeArray(), function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                $("#edit-panel").modal("hide");
+            }
+        })
+    })
+    /**
+     *  更新 =============================
+     */
+    $("#records-info").on("click", ".btn-edit", function () {
+        $("#edit-panel").modal("show");
+        $($("#entity-id").parent(".form-group")[0]).show();
+        $($("#entity-createTime").parent(".form-group")[0]).show();
+        $("#btn-modify").show();
+        $("#btn-persist").hide();
+        $("#modal-title").text("编辑用户组");
+
+        var id = $(this).attr("data-id");
+        $.get("[[@{/userGroup/}]]" + id, function (data) {
+            console.log(data);
+            if (data['id'] != undefined) {
+                $("#entity-id").val(data['id']).show();
+                $("#entity-createTime").val(data['createTime']).show();
+
+                $("#entity-groupName").val(data['groupName']);
+                $("#entity-type").val(data['type']);
+                $("#entity-description").val(data['description']);
+
+                $("#btn-modify").show();
+                $("#btn-addition").hide();
+                $("#add-panel").modal("show");
+            }
+        })
+    })
+
+    /**
+     *  编辑用户组 =========================================================
+     */
+    $("#btn-modify").click(function () {
+        $.post("[[@{/userGroup/modify}]]", $("#entity-form").serializeArray(), function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                $("#edit-panel").modal("hide");
+
+                // 更新结果提醒
+                $("#msg-box").html("<div class='text-success'>更新成功！</div>")
+                $("#info-panel").modal("show");
+            }
+        }).error(function (data, json) {
+            var message = data['responseJSON']['message'];
+
+            message = message != undefined ? message : "系统异常，请联系管理员！";
+            $("#msg-box").html("<div class='text-danger'>" + message + "</div>")
+            $("#info-panel").modal("show");
+        }, "json");
+    })
+
+    /**
+     *  权限管理 ================================================================================
+     */
+    var permBtnMap = {};
+    $("#records-info").on("click", ".btn-manage", function () {
+        $("#perm-panel").modal("show");
+
+        var id = $(this).attr("data-id");
+        // 设置表单值
+        $("#entity-selected-id").val(id);
+
+        $.get("[[@{/userGroup/}]]" + id + "/role", function (data) {
+            // 配置信息
+            $("#msg-panel-id").text("ID:\t" + data['userGroup']['id']);
+            $("#msg-panel-name").text("名称:\t" + data['userGroup']['groupName']);
+
+            // 配置功能
+            permBtnMap = data['roleMap'];
+            setPermBtnPanel(permBtnMap);
+            setSelectedPanel(permBtnMap);
+        })
+
+    })
+
+    /**
+     *  按钮框数据
+     * @param data
+     */
+    function setPermBtnPanel(permBtnMap) {
+
+        var str = "";
+        for (var key in permBtnMap) {
+            var list = permBtnMap[key];
+
+            str += "<div><div class='h6'>" + key + ":</div>"
+            var btnList = "";
+
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                if (item['check']) {
+                    btnList += "<a style='margin: 5px;' class='btn btn-default btn-sm btn-check active' data-selected='" + 1 + "' data-id='" + item['id'] + "' data-key='" + key + "'>" + item['name'] + "</a>";
+                } else {
+                    btnList += "<a style='margin: 5px;' class='btn btn-default btn-sm btn-check' data-selected='" + 0 + "' data-id='" + item['id'] + "' data-key='" + key + "'>" + item['name'] + "</a>";
+                }
+
+            }
+            str += btnList + "</div>";
+        }
+
+        $("#role-list").empty().append(str);
+    }
+
+    /**
+     *  选中框数据
+     */
+    function setSelectedPanel(permBtnMap) {
+        var str = "";
+        var selectedIds = "";
+        for (var key in permBtnMap) {
+            var list = permBtnMap[key];
+
+            str += "<div><div class='h6'>" + key + ":</div><ol>"
+            var btnList = "";
+
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                if (item['check']) {
+                    btnList += "<li><div>" + item['name'] + "<a data-id='" + item['id'] + "'  data-key='" + key + "' class='text-danger pull-right btn-check'><i class='glyphicon glyphicon-remove '></i></a></div></li>";
+                    // 配置选择值
+                    selectedIds += item['id'] + ";";
+                }
+            }
+            str += btnList + "</ol></div>";
+        }
+        $("#tags-selected-panel").empty().append(str);
+        // 注入表单
+        $("#entity-roleIdSet").val(selectedIds);
+    }
+
+    /**
+     * 选中列表按钮
+     */
+    $("#tags-selected-panel").on("click", ".btn-check", function () {
+        var id = $(this).attr("data-id");
+        var key = $(this).attr("data-key");
+
+        var list = permBtnMap[key];
+        if (list != undefined) {
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                if (item['id'] + "" == id) {
+                    item['check'] = false;
+                }
+            }
+        }
+
+        // 更新界面
+        setPermBtnPanel(permBtnMap);
+        setSelectedPanel(permBtnMap);
+    })
+
+    /**
+     *  角色按钮
+     */
+    $("#role-list").on("click", ".btn-check", function () {
+        var id = $(this).attr("data-id");
+        var key = $(this).attr("data-key");
+        var selected = $(this).attr("data-selected");
+
+        var list = permBtnMap[key];
+        if (list != undefined) {
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                if (item['id'] + "" == id) {
+                    /**
+                     *  反转
+                     */
+                    if (selected == '1') {
+                        item['check'] = false;
+                        $(this).attr("data-selected", 0);
+                    } else if (selected == '0') {
+                        item['check'] = true;
+                        $(this).attr("data-selected", 1);
+                    }
+                }
+            }
+        }
+
+        // 更新界面
+        setPermBtnPanel(permBtnMap);
+        setSelectedPanel(permBtnMap);
+    })
+
+    /**
+     *  更新权限
+     */
+    $("#btn-perm-submit").click(function () {
+        $.post("[[@{/userGroup/roles/modification}]]", $("#entity-select-form").serializeArray(), function (data) {
+
+            if (data['status'] == 'OK') {
+                // 更新结果提醒
+                $("#msg-box").html("<div class='text-success'>更新成功！</div>");
+            } else {
+                $("#msg-box").html("<div class='text-danger'>出现异常，请联系系统管理员！</div>");
+            }
+            $("#info-panel").modal("show");
+        }).error(function (data, json) {
+            var message = data['responseJSON']['message'];
+
+            message = message != undefined ? message : "系统异常，请联系管理员！";
+            $("#msg-box").html("<div class='text-danger'>" + message + "</div>")
+            $("#info-panel").modal("show");
+        }, "json");
+    })
+
+    /**
+     *  配置人员 =================================================================
+     */
+
+    /**
+     *  所有用户
+     */
+    $('#record-users').bootstrapTable({
+        url: "[[@{/user/all?status=1}]]",//请求数据url
+        showRefresh: true,
+        smartDisplay: true,
+        showToggle: true,
+        paginationPreText: '上一页',
+        paginationNextText: '下一页',
+        pagination: true,//分页
+        paginationVAlign: 'bottom',
+        pageNumber: 1,
+        pageSize: 5,
+//        pageList: [10, 20, 30, 50, 'all'],//分页步进值
+        search: true, //显示搜索框
+        columns: [
+            {
+                field: 'userId',
+                title: 'ID',
+                sortable: true,
+            },
+            {
+                field: 'username',
+                title: '用户名',
+                width: '25%',
+                sortable: true,
+            },
+            {
+                title: '编辑',
+                formatter: function (value, row, index) { // 单元格格式化函数
+
+                    var userId = row['userId'];
+                    if (userMap[userId] != undefined) {
+                        return ""
+                    }
+                    return "<a class='btn btn-default btn-sm btn-user-select' data-id='" + userId + "'><i class='glyphicon glyphicon-plus  text-success '></i></a>";
+                }
+            },
+        ]
+    })
+
+    /**
+     *  已选用户
+     */
+    $('#record-selected-users').bootstrapTable({
+        showRefresh: true,
+        smartDisplay: true,
+        showToggle: true,
+        paginationPreText: '上一页',
+        paginationNextText: '下一页',
+        pagination: true,//分页
+        paginationVAlign: 'bottom',
+        pageNumber: 1,
+        pageSize: 5,
+//        pageList: [10, 20, 30, 50, 'all'],//分页步进值
+        search: true, //显示搜索框
+        columns: [
+            {
+                field: 'userId',
+                title: 'ID',
+                sortable: true,
+            },
+            {
+                field: 'username',
+                title: '用户名',
+                width: '25%',
+                sortable: true,
+            },
+            {
+                title: '编辑',
+                formatter: function (value, row, index) { // 单元格格式化函数
+                    var userId = row['userId'];
+                    return "<a class='btn btn-default btn-sm btn-user-remove' data-id='" + userId + "'><i class='glyphicon glyphicon-remove text-danger '></i></a>";
+                }
+            },
+        ]
+    })
+
+    /**
+     * 选中用户集合
+     **/
+    var userMap = {};
+
+    /**
+     *  用户管理弹窗
+     */
+    $("#records-info").on("click", ".btn-user", function () {
+        $("#user-panel").modal("show");
+        var id = $(this).attr("data-id");
+        $.get("[[@{/userGroup/}]]" + id + "/users", function (data) {
+
+            $("#group-id").val(id);
+            $("#user-group-id").text("ID:\t" + data['id']);
+            $("#user-group-name").text("用户组名:\t" + data['groupName']);
+
+            var users = data['users'];
+            // 更新用户管理界面
+            updateTable(users)
+
+        })
+    });
+
+    /**
+     *  更新用户管理中表格
+     * @param users
+     */
+    function updateTable(users) {
+        // 重置
+        userMap = {};
+        if (users != undefined) {
+            $("#record-selected-users").bootstrapTable("removeAll").bootstrapTable("append", users);
+            for (var i = 0; i < users.length; i++) {
+                var item = users[i];
+                userMap[item['userId']] = item['username'];
+            }
+        }
+        //刷新用户组
+        $("#record-users").bootstrapTable("refresh");
+    }
+
+    /**
+     * 未选用户列表
+     */
+    $("#record-users").on("click", ".btn-user-select", function () {
+        var groupId = $("#group-id").val();
+        var userId = $(this).attr("data-id");
+        $.post("[[@{/userGroup/associate/}]]" + groupId + "/" + userId, function (data) {
+            console.log(data);
+            if (data['status'] == 'OK') {
+                var object = data['object'];
+                if (object != undefined) {
+                    var users = object['users'];
+                    // 更新用户管理界面
+                    updateTable(users)
+                }
+            }
+        })
+
+    })
+    /**
+     *  选中组中移除按钮
+     */
+    $("#record-selected-users").on("click", ".btn-user-remove", function () {
+        var groupId = $("#group-id").val();
+        var userId = $(this).attr("data-id");
+        $.post("[[@{/userGroup/remove/associate/}]]" + groupId + "/" + userId, function (data) {
+            console.log(data);
+            if (data['status'] == 'OK') {
+                var object = data['object'];
+                if (object != undefined) {
+                    var users = object['users'];
+                    // 更新用户管理界面
+                    updateTable(users)
+                }
+            }
+        })
+    })
+
+    /**
+     *  详情 =================================================================================================
+     */
+
+    /**
+     *  #records-info detail 配置项
+     * @param data
+     */
+    function setDetail(data) {
+        var userGroup = data['userGroup'];
+        var roleMap = data['roleMap'];
+        var count = data['count'];
+
+        var str = '<div class="row">' +
+            '<div class="col-md-9">' +
+            '<div class="panel panel-default">' +
+            '<div class="panel-body">' +
+            '<div class="row">' +
+            '<div class="col-md-3"><label>ID:</label>&nbsp;&nbsp;' + userGroup['id'] + '</div>' +
+            '<div class="col-md-3"><label>名称:</label>&nbsp;&nbsp;' + userGroup['groupName'] + '</div>' +
+            '<div class="col-md-3"><label>类别:</label>&nbsp;&nbsp;' + typeDataMap[userGroup['type']] + '</div>' +
+            '<div class="col-md-3"><label>用户数:</label>&nbsp;&nbsp;' + count + '</div>' +
+            '</div>' +
+            '<div class="row">' +
+            '<div class="col-md-9"><label>描述:</label>&nbsp;&nbsp;' + userGroup['description'] + '</div>' +
+            '</div>' +
+            '<hr>' +
+            '<div class="row">' +
+            '<div class="col-md-9">' +
+            '<label>角色管理:</label>'+
+            '<div style="padding-left: 10px;">';
+
+        for (var key in roleMap) {
+
+            var list = roleMap[key];
+            if (list == undefined) {
+                return;
+            }
+
+            var itemList = "";
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                itemList += item['name'];
+                if (i < list.length - 1) {
+                    itemList += "&nbsp;&nbsp;";
+                }
+            }
+
+            str += '<div>' +
+                        '<label>' + key + ':</label>' +
+                        '<div style="padding-left: 10px;">' + itemList + '</div>' +
+                    '</div>';
+        }
+
+
+        str +='</div></div></div></div></div></div></div>';
+
+        $("#detail-panel-"+userGroup['id']).html(str);
+    }
+</script>
+</body>
+</html>

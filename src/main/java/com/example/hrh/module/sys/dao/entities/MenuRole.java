@@ -3,7 +3,6 @@ package com.example.hrh.module.sys.dao.entities;/**
  */
 
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.hrh.module.common.annotation.AssociateEntity;
 
 import javax.persistence.GeneratedValue;

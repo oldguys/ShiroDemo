@@ -1,0 +1,23 @@
+.bs-callout {
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+}
+.bs-callout-warning {
+    border-left-color: #aa6708;
+}
+.bs-callout-info {
+    border-left-color: #1b809e;
+}
+.bs-callout-success {
+    border-left-color: #3c763d;
+}
+.bs-callout-danger {
+    border-left-color: #ce4844;
+}
+
+ul{
+    list-style: none;
+}

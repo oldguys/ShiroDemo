@@ -1,7 +1,9 @@
 package com.example.hrh.module.common.dao.entities;
 
-import lombok.Data;
 
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -12,11 +14,11 @@ import java.util.Date;
  * @Author: ren
  * @CreateTime: 2018-10-2018/10/15 0015 16:41
  */
-@Data
 public abstract class BaseEntity {
 
     @Id
     @GeneratedValue
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Date createTime;
@@ -31,8 +33,16 @@ public abstract class BaseEntity {
         this.id = id;
     }
 
+    public Date getCreateTime() {
+        return createTime;
+    }
+
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public Integer getStatus() {
+        return status;
     }
 
     public void setStatus(Integer status) {

@@ -20,7 +20,7 @@ public class UserUserGroup {
     @GeneratedValue
     private Long id;
 
-    private Long userId;
+    private String userId;
 
     private Long userGroupId;
 }

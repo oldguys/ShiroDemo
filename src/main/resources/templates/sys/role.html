@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>角色管理</title>
+    <span th:include="commons/templates :: common-css-js"></span>
+    <span th:include="commons/templates :: init-menu"></span>
+    <span th:include="commons/templates :: bootstrap-table"></span>
+    <span th:include="commons/templates :: bootstrap-treeview"></span>
+    <style>
+        .list-group-item {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="commons/templates :: header"></div>
+<div class="container">
+    <div class="page-header">
+        <h3>角色管理
+            <button class="btn btn-default pull-right" id="add-btn"><i
+                    class="glyphicon glyphicon-plus"></i> 新增
+            </button>
+        </h3>
+    </div>
+    <table id="records-info"></table>
+</div>
+
+<!-- 编辑框 -->
+<div class="modal fade" id="edit-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="modal-title">编辑</h4>
+            </div>
+            <div class="modal-body">
+                <form id="entity-form">
+                    <div class="form-group">
+                        <label class="control-label">ID:</label>
+                        <input type="text" class="form-control" name="id" id="entity-id" readonly>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">角色名称:</label>
+                        <input type="text" class="form-control" id="entity-name" name="roleName" autocomplete="off">
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">角色标识:</label>
+                        <input type="text" class="form-control" name="roleFlag" id="entity-roleFlag"
+                               autocomplete="off">
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">类型:</label>
+                        <select class="form-control" name="type" id="entity-type">
+                        </select>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">描述:</label>
+                        <textarea type="text" class="form-control" id="entity-description"
+                                  name="description"></textarea>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">创建时间:</label>
+                        <input type="text" class="form-control" id="entity-createTime"
+                               autocomplete="off" readonly>
+                        <span class="help-block"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-warning" id="btn-modify">更新</button>
+                <button type="button" class="btn btn-success" id="btn-persist">保存</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!-- 权限控制 -->
+<div class="modal fade" id="perm-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">目录配置</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="panel panel-default">
+                            <div class="panel-body" id="tags-selected-panel">
+                                <div class="row">
+                                    <div class="col-md-3" id="role-id">ID:&nbsp;111</div>
+                                    <div class="col-md-3" id="role-name">名称:&nbsp;ming</div>
+                                    <div class="col-md-3" id="role-roleFlag">角色标识:&nbsp;ming</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>已选目录:</label>
+                                <div id="menu-list">
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <form id="entity-select-form" style="display: none">
+                            <input name="id" id="entity-selected-id">
+                            <input name="menuIdSet" id="entity-menuIds">
+                        </form>
+                    </div>
+                    <div class="col-md-4" style="border-left: #CCC 1px solid">
+                        <div class="h5">目录:</div>
+                        <div id="record-tree" style="height: 400px;overflow: auto"></div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-warning" id="btn-perm-submit">更新权限</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<!-- 编辑框 -->
+<div class="modal fade" id="info-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">消息</h4>
+            </div>
+            <div class="modal-body" id="msg-box">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script th:inline="text">
+
+    var typeDataMap = {}
+    /**
+     *  初始化类别
+     */
+    $.get("[[@{/role/type}]]", function (data) {
+        typeDataMap = data;
+        var str = "";
+        for (var key in data) {
+            str += "<option value='" + key + "'>" + data[key] + "</option>"
+        }
+        $("#entity-type").append(str);
+        $('#records-info').bootstrapTable("refresh");
+    })
+
+    $('#records-info').bootstrapTable({
+        url: "[[@{/role/all}]]",//请求数据url
+        showRefresh: true,
+        smartDisplay: true,
+        showToggle: true,
+        paginationPreText: '上一页',
+        paginationNextText: '下一页',
+        pagination: true,//分页
+        paginationVAlign: 'bottom',
+        pageNumber: 1,
+        pageSize: 30,
+        pageList: [10, 20, 30, 50, 'all'],//分页步进值
+        search: true, //显示搜索框
+        columns: [
+            {
+                field: 'id',
+                title: '编号',
+                sortable: true,
+            },
+            {
+                field: 'name',
+                title: '标题',
+                width: '25%',
+                sortable: true,
+                formatter: function (value, row, index) {
+                    return "<p>" + value + "</p>";
+                }
+            },
+            {
+                field: 'roleFlag',
+                title: '标识',
+                sortable: true,
+                formatter: function (value, row, index) {
+                    return "<p class='text-danger'>" + value + "</p>";
+                }
+            },
+            {
+                field: 'description',
+                title: '描述',
+                sortable: true,
+
+            },
+            {
+                field: 'type',
+                title: '类型',
+                sortable: true,
+                formatter: function (value, row, index) { // 单元格格式化函数
+                    var result = typeDataMap[value];
+                    if (result != undefined) {
+                        return result;
+                    }
+                    return value;
+                }
+            },
+            {
+                field: 'createTime',
+                title: '创建时间',
+                sortable: true,
+            },
+            {
+                title: '编辑',
+                width: '150px',
+                formatter: function (value, row, index) { // 单元格格式化函数
+
+                    var str = "<div class='pull-right'>";
+                    var id = row['id'];
+                    var type = row['type'];
+
+                    // 目录角色具有目录控制权限
+                    if (type == 1) {
+                        str += ' <a class="btn btn-default btn-menu" title="管理目录" data-id="' + id + '"  >  ' +
+                            '  <i class="glyphicon glyphicon glyphicon-list"></i>  ' +
+                            ' </a>  ';
+                    }
+
+                    str += ' <a class="btn btn-default btn-edit" title="编辑内容" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                        '  <i class="glyphicon glyphicon-pencil"></i>  ' +
+                        ' </a>  ';
+                    if (row['status'] == 1) {
+                        str += '<a class="btn btn-default btn-state" title="编辑状态" data-state="0" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                            '  <i class="glyphicon glyphicon-ok text-success"></i>  ' +
+                            ' </a>  ';
+                    } else {
+                        str += ' <a class="btn btn-default btn-state" title="编辑状态" data-state="1" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                            '  <i class="glyphicon glyphicon-remove text-danger"></i>  ' +
+                            ' </a>  ';
+                    }
+                    return str + "</div>";
+                }
+            },
+        ]
+    })
+
+    /**
+     *  编辑更新状态
+     */
+    $("#records-info").on("click", ".btn-state", function () {
+        var state = $(this).attr("data-state");
+        var id = $(this).attr("data-id");
+        $.post("[[@{/role/}]]" + id + "/" + state, function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+            }
+        })
+    })
+
+    /**
+     *  新增 =============================
+     */
+    $("#add-btn").click(function () {
+        $("#edit-panel").modal("show");
+        $($("#entity-id").parent(".form-group")[0]).hide();
+        $($("#entity-createTime").parent(".form-group")[0]).hide();
+        $("#btn-modify").hide();
+        $("#btn-persist").show();
+
+        $("#entity-name").val("");
+        $("#entity-roleFlag").val("");
+        $("#entity-type").val("");
+        $("#entity-description").val("");
+
+        $("#modal-title").text("新建角色");
+    })
+
+    $("#btn-persist").click(function () {
+        $.post("[[@{/role/addition}]]", $("#entity-form").serializeArray(), function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                $("#edit-panel").modal("hide");
+            }
+        })
+    })
+    /**
+     *  更新 =============================
+     */
+    $("#records-info").on("click", ".btn-edit", function () {
+        $("#edit-panel").modal("show");
+        $($("#entity-id").parent(".form-group")[0]).show();
+        $($("#entity-createTime").parent(".form-group")[0]).show();
+        $("#btn-modify").show();
+        $("#btn-persist").hide();
+
+        $("#modal-title").text("编辑角色");
+        var id = $(this).attr("data-id");
+        $.get("[[@{/role/}]]" + id, function (data) {
+            console.log(data);
+            if (data['id'] != undefined) {
+                $("#entity-id").val(data['id']).show();
+                $("#entity-createTime").val(data['createTime']).show();
+
+                $("#entity-name").val(data['name']);
+                $("#entity-roleFlag").val(data['roleFlag']);
+                $("#entity-type").val(data['type']);
+                $("#entity-description").val(data['description']);
+
+                $("#btn-modify").show();
+                $("#btn-addition").hide();
+                $("#add-panel").modal("show");
+            }
+        })
+    })
+
+    $("#btn-modify").click(function () {
+        $.post("[[@{/role/modify}]]", $("#entity-form").serializeArray(), function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                $("#edit-panel").modal("hide");
+
+                // 更新提醒
+                $("#msg-box").html("<div class='text-success'>更新成功！</div>")
+                $("#info-panel").modal("show");
+            }
+        }).error(function (data, json) {
+            var message = data['responseJSON']['message'];
+
+            message = message != undefined ? message : "系统异常，请联系管理员！";
+            $("#msg-box").html("<div class='text-danger'>" + message + "</div>")
+            $("#info-panel").modal("show");
+        }, "json");
+    })
+
+    /**
+     *  目录控制 ===============================================================
+     */
+        // 目录选择列表
+    var menuSet = {};
+    var menuTree = {};
+    $("#records-info").on("click", ".btn-menu", function (data) {
+
+        // 初始化空
+        menuSet = {};
+        $("#menu-list").empty();
+
+        var id = $(this).attr("data-id");
+        $("#perm-panel").modal("show");
+
+        $.get("[[@{/role/}]]" + id + "/menus", function (data) {
+            menuTree = data['menu'];
+            var role = data['role'];
+
+            $("#entity-selected-id").val(role['id']);
+
+            $("#role-id").text("ID:\t" + role['id'])
+            $("#role-name").text("名称:\t" + role['name'])
+            $("#role-roleFlag").text("标识:\t" + role['roleFlag'])
+
+            $("#record-tree").treeview({
+                data: menuTree,// 赋值
+                highlightSelected: false,// 选中项不高亮，避免和上述制定的颜色变化规则冲突
+                multiSelect: true,// 不允许多选，因为我们要通过check框来控制
+                showCheckbox: true,// 展示checkbox
+                highlightSearchResults: true, // 高亮查询结果
+                levels: 10, // 展开级别
+                searchResultBackColor: '#CCC', // 查找背景
+                showTags: true,
+                onNodeChecked: function (event, data) {
+                    menuSet[data['id']] = data['text'];
+                    var parentId = data['parentId'];
+                    //设置选中列表
+                    setSelectedPanel();
+                    if (parentId != undefined) {
+                        $("#record-tree").treeview("checkNode", data['parentId']);
+                    }
+                },
+                onNodeUnchecked: function (event, data) {
+
+                    menuSet[data['id']] = undefined;
+                    setSelectedPanel();
+                    var nodes = data['nodes'];
+
+                    if (nodes != undefined) {
+                        for (var i = 0; i < nodes.length; i++) {
+                            var node = nodes[i];
+                            var state = node['state'];
+                            if (state != undefined && state['checked']) {
+                                menuSet[node['id']] = undefined;
+                                $("#record-tree").treeview("uncheckNode", node['nodeId']);
+                            }
+                        }
+                    }
+                },
+                onNodeSelected: function (event, data) {
+                    $("#record-tree").treeview("toggleNodeChecked", data['nodeId']);
+                },
+                onNodeUnselected: function (event, data) {
+                    $("#record-tree").treeview("toggleNodeChecked", data['nodeId']);
+                },
+
+            });
+
+            // 配置目录
+            var menuList = role['menuList'];
+            if (menuList == undefined) {
+                return;
+            }
+
+            for (var i = 0; i < menuList.length; i++) {
+                var item = menuList[i];
+                menuSet[item['id']] = item['name'];
+            }
+
+            //设置选中列表
+            setSelectedPanel();
+        })
+    })
+
+    /**
+     *  设置选中列表
+     */
+    function setSelectedPanel() {
+        var str = "";
+        var menuIds = "";
+        for (var key in menuSet) {
+            if (menuSet[key] != undefined) {
+                str += "<li>" + menuSet[key] + "</li>";
+                menuIds += key + ";";
+            }
+        }
+
+        var treeStr = "<ul>" + getSelectedTreeStr( menuTree) + "</ul>";
+
+        // 注入到表单
+        $("#entity-menuIds").val(menuIds);
+        // 刷新表单界面
+        $("#menu-list").empty().append(treeStr);
+    }
+
+    function getSelectedTreeStr( list) {
+
+        var str = "";
+
+        if (menuTree != undefined) {
+            for (var i = 0; i < list.length; i++) {
+                var node = list[i];
+                if (menuSet[node['id']] != undefined) {
+                    if (node['nodes'] != undefined && node['nodes'].length > 0) {
+                        str += "<li>-&nbsp;" + menuSet[node['id']] + "</li>";
+                        str += "<li><ul>" + getSelectedTreeStr( node['nodes']) + "</li></ul>";
+                    } else {
+                        str += "<li>&nbsp;&nbsp;" + menuSet[node['id']] + "</li>";
+                    }
+                }
+            }
+        }
+
+        return str;
+    }
+
+    /**
+     *  更新权限
+     */
+    $("#btn-perm-submit").click(function () {
+        $.post("[[@{/role/menus/modification}]]", $("#entity-select-form").serializeArray(), function (data) {
+            if (data['status'] == 'OK') {
+                // 更新结果提醒
+                $("#msg-box").html("<div class='text-success'>更新成功！</div>");
+            } else {
+                $("#msg-box").html("<div class='text-danger'>出现异常，请联系系统管理员！</div>");
+            }
+            $("#info-panel").modal("show");
+        }).error(function (data, json) {
+            var message = data['responseJSON']['message'];
+
+            message = message != undefined ? message : "系统异常，请联系管理员！";
+            $("#msg-box").html("<div class='text-danger'>" + message + "</div>")
+            $("#info-panel").modal("show");
+        }, "json");
+    })
+</script>
+</body>
+</html>

@@ -3,18 +3,19 @@ package com.example.hrh.module.sys.configs.shiro;/**
  */
 
 import com.example.hrh.module.sys.dao.entities.UserEntity;
+import com.example.hrh.module.sys.dao.jpas.RoleMapper;
 import com.example.hrh.module.sys.dao.jpas.UserEntityMapper;
+import com.example.hrh.module.sys.dto.json.user.UserRoleFlag;
+import com.example.hrh.module.sys.service.RoleService;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
-import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -27,16 +28,17 @@ public class ShiroRealm extends AuthorizingRealm {
 
     @Autowired
     private UserEntityMapper userEntityMapper;
+    @Autowired
+    private RoleService roleService;
+
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
 
-        System.out.println("权限校验:" + principals.getPrimaryPrincipal());
+        String userId = (String) principals.getPrimaryPrincipal();
+        UserRoleFlag userRoleFlag = roleService.getUserRoleFlags(userId);
 
-        Set<String> roles = new HashSet<>();
-        roles.add("admin");
-
-        return new SimpleAuthorizationInfo(roles);
+        return new SimpleAuthorizationInfo(userRoleFlag.getRoleFlags());
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.example.hrh.module.common.dao.entities;/**
  * Created by Administrator on 2018/10/16 0016.
  */
 
-import lombok.Data;
 
 import java.util.Collections;
 import java.util.List;

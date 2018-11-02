@@ -1,11 +1,10 @@
 package com.example.hrh.dao;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.example.hrh.module.sys.dao.entities.Menu;
 import com.example.hrh.module.sys.dao.entities.Role;
-import com.example.hrh.module.sys.dao.entities.UserEntity;
 import com.example.hrh.module.sys.dao.jpas.RoleMapper;
-import com.example.hrh.module.sys.dao.jpas.UserEntityMapper;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,32 +22,35 @@ public class RoleMapperTests {
     private RoleMapper roleMapper;
 
     @Test
-    public void testSelectList(){
-        Role index = new Role();
-        index.setName("测试");
+    public void testFindByGroupId(){
+        List<Role> roles = roleMapper.findByGroupId(1L);
+        roles.forEach(System.out::println);
+    }
 
-        List<Role> roles = roleMapper.selectList(new QueryWrapper(index));
-        for(Role temp : roles){
-            System.out.println(temp);
+    @Test
+    public void testSave() {
+
+        for (int i = 0; i < 5; i++) {
+            Role role = new Role();
+            role.setStatus(1);
+            role.setName("测试" + i);
+            role.setRoleFlag("role_" + i);
+            role.setCreateTime(new Date());
+            roleMapper.save(role);
         }
     }
 
     @Test
-    public void testSelectById() {
-        Role role = roleMapper.selectById(1);
-        System.out.println(role);
-    }
-
-    @Test
-    public void testInsert() {
-
-        Role entity = new Role();
-        entity.setFlag("111");
-        entity.setName("测试角色2");
-        entity.setCreateTime(new Date());
-        entity.setStatus(1);
-
-        roleMapper.insert(entity);
+    public void testFindAllByStatus() {
+        System.out.println("======================= 1");
+        List<Role> roles = roleMapper.findAllByStatus(1);
+        roles.forEach(System.out::println);
+        System.out.println("======================= 0");
+        roles = roleMapper.findAllByStatus(0);
+        roles.forEach(System.out::println);
+        System.out.println("======================= all");
+        roles = roleMapper.findAllByStatus(null);
+        roles.forEach(System.out::println);
     }
 
 }

@@ -5,9 +5,12 @@
 
 <mapper namespace="com.example.hrh.module.sys.dao.jpas.UserEntityMapper">
 
-	<sql id="all_user_columns" >
+	<sql id="table_name">sys_user_entity</sql>
+
+	<sql id="all_entity_columns" >
 		${prefix}.id,
 		${prefix}.`password`,
+		${prefix}.user_id,
 		${prefix}.username,
 		${prefix}.status,
 		${prefix}.create_time
@@ -15,17 +18,51 @@
 
 	<select id="findByUsername" parameterType="string" resultType="UserEntity">
 		SELECT
-		<include refid="all_user_columns">
+		<include refid="all_entity_columns">
 			<property name="prefix" value="a"/>
 		</include>
 		FROM
-		sys_user_entity a
+		<include refid="table_name"/> a
 		WHERE
 		a.username = #{username}
 	</select>
 
-	<select id="findAll" resultType="UserEntity">
-		SELECT * FROM sys_user_entity;
+	<select id="findAllByStatus" parameterType="int" resultType="UserEntity">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		<include refid="table_name"/> a
+		<where>
+			<choose>
+				<when test="status != null">
+					`status` = #{status}
+				</when>
+			</choose>
+		</where>
+	</select>
+
+	<select id="findByGroupId" resultType="UserEntity" parameterType="long">
+		SELECT
+			b.user_id,
+			b.username
+		FROM
+			sys_user_user_group a
+		INNER JOIN <include refid="table_name"/> b ON a.user_id = b.user_id
+		WHERE
+			b.`status` = 1
+		AND a.user_group_id = #{id}
+	</select>
+	
+	<select id="findByUsernameAndUserIdContaining" resultType="UserEntity" >
+		SELECT
+			user_id,username
+		FROM
+			<include refid="table_name"/>  a
+		WHERE
+			a.username LIKE CONCAT('%',#{text}, '%') OR a.user_id LIKE CONCAT('%', #{text}, '%')
+		LIMIT #{size}
 	</select>
 
 </mapper>

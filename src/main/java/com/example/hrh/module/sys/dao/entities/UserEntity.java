@@ -15,8 +15,11 @@ import javax.persistence.Column;
  */
 @Data
 @Entity(pre = "sys_")
-@TableName(value = "sys_user_entity" )
-public class UserEntity extends BaseEntity{
+@TableName(value = "sys_user_entity")
+public class UserEntity extends BaseEntity {
+
+    @Column(unique = true, nullable = false)
+    private String userId;
 
     @Column(unique = true)
     private String username;
@@ -24,6 +27,22 @@ public class UserEntity extends BaseEntity{
     private String password;
 
     private String sourcePassword;
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getSourcePassword() {
+        return sourcePassword;
+    }
 
     public void setSourcePassword(String sourcePassword) {
         this.sourcePassword = sourcePassword;
@@ -44,8 +63,10 @@ public class UserEntity extends BaseEntity{
     @Override
     public String toString() {
         return "UserEntity{" +
-                "username='" + username + '\'' +
+                "userId='" + userId + '\'' +
+                ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                ", sourcePassword='" + sourcePassword + '\'' +
                 "} " + super.toString();
     }
 }

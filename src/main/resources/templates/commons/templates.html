@@ -1,0 +1,134 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="fragments/webModel">
+<meta charset="UTF-8">
+<!-- 通用头 -->
+<div th:fragment="header">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                        aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#"><b>Shiro Demo</b></a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="menu-item"><a th:href="@{/view/perm/dictionary/page}">字典管理</a></li>
+                    <li class="dropdown menu-item">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            系统控制
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="menu-item"><a th:href="@{/view/perm/userGroup/page}">目录管理</a></li>
+                            <li class="menu-item"><a th:href="@{/view/perm/user/page}">用户权限管理</a></li>
+                            <li class="menu-item"><a th:href="@{/view/perm/role/page}">角色管理</a></li>
+                            <li class="menu-item"><a th:href="@{/view/perm/userGroup/page}">用户组管理</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <div class="navbar-form navbar-right">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="header-search-text" th:value="${queryText}" placeholder="Search for...">
+                        <span class="input-group-btn">
+                          <a class="btn btn-default" id="header-search-btn"><i
+                                  class="glyphicon glyphicon-search"></i></a>
+                            <a id="header-search-query" target="_blank"></a>
+                        </span>
+                    </div>
+                </div>
+
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+    <br><br><br>
+</div>
+
+<div th:fragment="init-menu">
+    <script th:inline="text">
+        $(function () {
+            var items = $(".menu-item");
+            for (var i = 0; i < items.length; i++) {
+                var item = $(items[i]);
+                var itemText = $(item.find("a")).text();
+
+                if (itemText == $("title").text()) {
+                    item.addClass("active");
+                } else {
+                    item.removeClass("active");
+                }
+            }
+            $("#header-search-btn").click(function () {
+                var searchText = $.trim($("#header-search-text").val());
+                if (searchText.length > 0) {
+                    console.log("header-search-text:" + searchText);
+                    $("#header-search-query").attr("href", "[[@{/view/search}]]" + "?query=" + searchText)[0].click();
+                }
+            })
+
+        });
+
+    </script>
+</div>
+
+<div th:fragment="common-css-js">
+    <link th:href="@{/css/bootstrap.css}" rel="stylesheet">
+    <!--<link th:href="@{/css/bootstrap-glyphicons.css}" rel="stylesheet">-->
+    <!--<link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">-->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <script th:src="@{/js/jquery-2.1.0.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+</div>
+
+<div th:fragment="bootstrap-treeview">
+    <!--  <link href="https://cdn.bootcss.com/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css" rel="stylesheet">-->
+    <script th:src="@{/plugins/treeview/bootstrap-treeview.js}"></script>
+    <!--<script src="https://cdn.bootcss.com/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>-->
+</div>
+
+<div th:fragment="bootstrap-table">
+    <link th:href="@{/plugins/table/bootstrap-table.css}" rel="stylesheet">
+    <script th:src="@{/plugins/table/bootstrap-table.js}"></script>
+    <script th:src="@{/plugins/table/bootstrap-table-export.js}"></script>
+    <script th:src="@{/plugins/table/bootstrap-table-filter.js}"></script>
+    <script th:src="@{/plugins/table/bootstrap-table-zh-CN.js}"></script>
+</div>
+
+<div th:fragment="bootstrap-fileinput">
+    <link th:href="@{/plugins/fileinput/bootstrap-fileinput.min.css}" rel="stylesheet">
+    <script th:src="@{/plugins/fileinput/bootstrap-fileinput.min.js}"></script>
+    <script th:src="@{/plugins/fileinput/bootstrap-fileinput.zh-CN.js}"></script>
+</div>
+
+<div th:fragment="wangEditor">
+    <link th:href="@{/plugins/wangeditor/wangEditor.css}" rel="stylesheet">
+    <script th:src="@{/plugins/wangeditor/wangEditor.min.js}"></script>
+</div>
+
+<div th:fragment="bootstrap-select">
+    <link th:href="@{/plugins/selected/bootstrap-select.min.css}" rel="stylesheet">
+    <script th:src="@{/plugins/selected/bootstrap-select.min.js}"></script>
+    <script th:src="@{/plugins/selected/defaults-zh_CN.min.js}"></script>
+</div>
+
+<div th:fragment="bootstrap-typeahead">
+    <link th:href="@{/plugins/typeahead/typeahead-bootstrap-css-1.21.css}" rel="stylesheet">
+    <script th:src="@{/plugins/typeahead/bootstrap3-typeahead.js}"></script>
+</div>
+
+<div th:fragment="typeahead">
+    <link th:href="@{/plugins/typeahead/jquery.typeahead.css}" rel="stylesheet">
+    <script th:src="@{/plugins/typeahead/jquery.typeahead.js}"></script>
+</div>
+
+
+<div th:fragment="sortable">
+    <script th:src="@{/plugins/sortable/jquery-sortable.js}"></script>
+</div>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户权限管理</title>
+    <span th:include="commons/templates :: common-css-js"></span>
+    <span th:include="commons/templates :: init-menu"></span>
+    <!--<span th:include="commons/templates :: bootstrap-typeahead"></span>-->
+    <span th:include="commons/templates :: typeahead"></span>
+</head>
+<body>
+<div th:replace="commons/templates :: header"></div>
+<div class="container">
+    <div class="page-header">
+        <h3>用户权限管理</h3>
+    </div>
+    <div class="row">
+        <div class="col-md-9">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <!-- 搜索-->
+                            <div class="typeahead__container">
+                                <div class="typeahead__field">
+
+                                    <span class="typeahead__query">
+                                        <input class="js-typeahead"
+                                               id="query-text"
+                                               name="q"
+                                               type="search"
+                                               autofocus
+                                               autocomplete="off"
+                                               placeholder="用户ID"
+                                        >
+                                    </span>
+                                    <span class="typeahead__button">
+                                        <button type="button" id="user-info-search">
+                                            <span class="typeahead__search-icon"></span>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- 搜索-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script th:inline="text">
+    $.typeahead({
+        input: ".js-typeahead",
+        minLength: 1,
+        maxItem: 15,
+        order: "asc",
+        hint: true,
+        maxItemPerGroup: 5,
+        backdrop: {
+            "background-color": "#fff"
+        },
+        emptyTemplate: '没有和  "{{query}}" 相近的数据',
+        source: {
+            'ID': {
+                ajax: {
+                    url: "[[@{/user/search}]]"
+                }
+            }
+        },
+        callback: {
+            onClickAfter: function (node, a, item, event) {
+                event.preventDefault();
+            }
+        }
+        //debug: true
+    });
+</script>
+</body>
+</html>
