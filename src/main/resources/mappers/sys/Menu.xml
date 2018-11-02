@@ -47,6 +47,21 @@
 		AND b.`status` = 1
 	</select>
 
+	<select id="findByUserId" parameterType="String" resultType="Menu">
+		SELECT DISTINCT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+			sys_menu a
+		INNER JOIN sys_menu_role b ON a.id = b.menu_id
+		INNER JOIN sys_role_user_group c ON b.role_id = c.role_id
+		INNER JOIN sys_user_user_group d ON c.user_group_id = d.user_group_id
+		WHERE
+			d.user_id = #{userId}
+		AND a.`status` = 1
+	</select>
+
 	<insert id="save" parameterType="Menu" keyProperty="id" useGeneratedKeys="true">
 		INSERT <include refid="table_name"/>
 		(

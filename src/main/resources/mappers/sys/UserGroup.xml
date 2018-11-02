@@ -81,6 +81,22 @@
         AND a.`status` = 1
     </select>
 
+    <select id="countUserByGroupId" resultType="int" parameterType="long">
+        SELECT count(DISTINCT user_id) FROM sys_user_user_group WHERE user_group_id = #{id};
+    </select>
+
+    <select id="findByUserId" resultType="UserGroup" parameterType="long">
+        SELECT
+            <include refid="all_entity_columns">
+                <property name="prefix" value="b"/>
+            </include>
+        FROM
+            sys_user_user_group a
+        INNER JOIN sys_user_group b ON a.user_group_id = b.id
+        WHERE
+            user_id = #{userId}
+    </select>
+
     <insert id="save" parameterType="UserGroup" keyProperty="id" useGeneratedKeys="true">
         INSERT
         <include refid="table_name"/>
@@ -157,8 +173,6 @@
         </foreach>
     </delete>
 
-    <select id="countUserByGroupId" resultType="int" parameterType="long">
-        SELECT count(DISTINCT user_id) FROM sys_user_user_group WHERE user_group_id = #{id};
-    </select>
+
 
 </mapper>

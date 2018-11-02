@@ -41,7 +41,7 @@ public class UserEntityMapperTests {
 
     @Test
     public void testSelectById() {
-        UserEntity userEntity = userEntityMapper.selectById(1);
+        UserEntity userEntity = userEntityMapper.findOne(1L);
         System.out.println(userEntity);
     }
 
@@ -63,7 +63,7 @@ public class UserEntityMapperTests {
         entity.setPassword(encodePsw);
 
 
-        userEntityMapper.insert(entity);
+        userEntityMapper.save(entity);
     }
 
 }

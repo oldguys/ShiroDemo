@@ -8,6 +8,7 @@ import com.example.hrh.module.common.utils.ReflectUtils;
 import com.example.hrh.module.common.utils.ValidateUtils;
 
 import com.example.hrh.module.sys.dao.entities.UserGroup;
+import com.example.hrh.module.sys.dao.jpas.UserEntityMapper;
 import com.example.hrh.module.sys.dao.jpas.UserGroupMapper;
 
 import com.example.hrh.module.sys.dto.form.usergroup.UserGroupAddForm;
@@ -43,6 +44,7 @@ public class UserGroupController extends BaseController {
     private UserGroupMapper userGroupMapper;
     @Autowired
     private UserGroupService userGroupService;
+
 
     @GetMapping("all")
     public Object all(Integer status) {
@@ -221,4 +223,11 @@ public class UserGroupController extends BaseController {
     public Object getUserGroupInfo(@PathVariable Long id){
         return userGroupService.getUserInfo(id);
     }
+
+    @GetMapping("user/{userId}")
+    public Object getUserWithUserGroup(@PathVariable String userId){
+        return userGroupService.getUserWithUserGroup(userId);
+    }
+
+
 }

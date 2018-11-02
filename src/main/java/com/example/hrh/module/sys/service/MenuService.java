@@ -35,6 +35,15 @@ public class MenuService {
     public List<MenuNode> getActiveMenuTree() {
         List<Menu> resources = menuMapper.findAllByStatus(1);
 
+        return getMenuTree(resources);
+    }
+
+    /**
+     *  转换为目录树
+     * @param resources
+     * @return
+     */
+    private List<MenuNode> getMenuTree(List<Menu> resources) {
         List<MenuNode> menu = new ArrayList<>();
 
         List<Menu> remove = new ArrayList<>();
@@ -56,7 +65,6 @@ public class MenuService {
         sortMenuNode(menu);
         return menu;
     }
-
 
     /**
      * 填充节点
@@ -106,7 +114,7 @@ public class MenuService {
 
         String userId = (String) ShiroUtils.getCurrentUser();
 
-        List<Menu> allMenu = menuMapper.findAllByUserId(userId);
+        List<Menu> allMenu = menuMapper.findByUserId(userId);
 
         // 该用户没有权限
         if (allMenu.isEmpty()) {
@@ -201,6 +209,8 @@ public class MenuService {
 
                 if (sysMenu.getId().equals(node.getId())) {
                     node.setCheck(true);
+                }else{
+                    node.setCheck(false);
                 }
 
                 if (!node.getSubs().isEmpty()) {
@@ -271,5 +281,17 @@ public class MenuService {
         pullTreeViewNode(menu, treeViewNode);
 
         return treeViewNode;
+    }
+
+    /**
+     *  通过用户
+     * @param userId
+     * @return
+     */
+    public List<MenuNode> getMenusByUserId(String userId) {
+
+        List<Menu> menuList = menuMapper.findByUserId(userId);
+
+        return getMenuTree(menuList);
     }
 }

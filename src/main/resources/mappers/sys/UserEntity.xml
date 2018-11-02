@@ -16,6 +16,11 @@
 		${prefix}.create_time
 	</sql>
 
+	<resultMap id="UserWithUserGroups" type="UserEntity">
+		<id column="id" property="id"/>
+		<collection property="userGroups" column="id" select="com.example.hrh.module.sys.dao.jpas.UserGroupMapper.findByUserId"/>
+	</resultMap>
+
 	<select id="findByUsername" parameterType="string" resultType="UserEntity">
 		SELECT
 		<include refid="all_entity_columns">
@@ -63,6 +68,17 @@
 		WHERE
 			a.username LIKE CONCAT('%',#{text}, '%') OR a.user_id LIKE CONCAT('%', #{text}, '%')
 		LIMIT #{size}
+	</select>
+
+	<select id="findUserWithUserGroups" parameterType="string" resultMap="UserWithUserGroups">
+		SELECT
+			<include refid="all_entity_columns">
+				<property name="prefix" value="a"/>
+			</include>
+		FROM
+			<include refid="table_name"/>  a
+		WHERE
+			a.user_id = #{id}
 	</select>
 
 </mapper>

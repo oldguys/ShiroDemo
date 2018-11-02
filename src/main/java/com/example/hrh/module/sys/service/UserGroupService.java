@@ -4,9 +4,12 @@ package com.example.hrh.module.sys.service;
 import com.example.hrh.module.sys.dao.entities.*;
 import com.example.hrh.module.sys.dao.jpas.DictionaryMapper;
 import com.example.hrh.module.sys.dao.jpas.RoleMapper;
+import com.example.hrh.module.sys.dao.jpas.UserEntityMapper;
 import com.example.hrh.module.sys.dao.jpas.UserGroupMapper;
 import com.example.hrh.module.sys.dto.json.roles.RoleInfo;
+import com.example.hrh.module.sys.dto.json.user.UserWithUserGroup;
 import com.example.hrh.module.sys.dto.json.usergroup.UserGroupInfo;
+import com.example.hrh.module.sys.dto.json.usergroup.UserGroupItem;
 import com.example.hrh.module.sys.dto.json.usergroup.UserGroupWithRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,10 +32,16 @@ public class UserGroupService {
     private DictionaryMapper dictionaryMapper;
     @Autowired
     private RoleService roleService;
+    @Autowired
+    private UserEntityMapper userEntityMapper;
+    @Autowired
+    private MenuService menuService;
+
     /**
      * 用户组类别
      */
     public static final Map<String, String> ENTITY_TYPE = new HashMap<>();
+
 
     public Map<String, String> getEntityType() {
         if (ENTITY_TYPE.isEmpty()) {
@@ -136,5 +145,62 @@ public class UserGroupService {
         info.setCount(userGroupMapper.countUserByGroupId(id));
 
         return info;
+    }
+
+    public UserWithUserGroup getUserWithUserGroup(String userId) {
+
+        UserEntity userEntity = userEntityMapper.findUserWithUserGroups(userId);
+        if (null == userEntity) {
+            return null;
+        }
+        Map<Long, UserGroupItem> listMap = new HashMap<>(userEntity.getUserGroups().size());
+        userEntity.getUserGroups().forEach(obj -> {
+
+            UserGroupItem item = new UserGroupItem();
+            item.setGroupId(obj.getId());
+            item.setGroupName(obj.getGroupName());
+            item.setCheck(true);
+
+            listMap.put(obj.getId(), item);
+        });
+
+        Map<String, String> typeMap = getEntityType();
+        Map<String, List<UserGroupItem>> userGroupMaps = new HashMap<>(typeMap.size());
+
+        List<UserGroup> list = userGroupMapper.findAllByStatus(1);
+        list.forEach(obj -> {
+
+            if (null == obj.getType()) {
+                return;
+            }
+
+            // 注意 Integer => String
+            String typeName = typeMap.get(String.valueOf(obj.getType()));
+
+            List<UserGroupItem> entityList = userGroupMaps.get(typeName);
+
+            if (null == entityList) {
+                entityList = new ArrayList<>();
+                userGroupMaps.put(typeName, entityList);
+            }
+
+            UserGroupItem item = listMap.get(obj.getId());
+            if (null == item) {
+                item = new UserGroupItem();
+                item.setGroupName(obj.getGroupName());
+                item.setGroupId(obj.getId());
+            }
+
+            entityList.add(item);
+        });
+
+        UserWithUserGroup userWithUserGroup = new UserWithUserGroup();
+        userWithUserGroup.setUser(userEntity);
+        userWithUserGroup.setGroupMaps(userGroupMaps);
+
+        // 关联目录
+        userWithUserGroup.setMenuList(menuService.getMenusByUserId(userId));
+
+        return userWithUserGroup;
     }
 }

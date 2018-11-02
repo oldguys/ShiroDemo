@@ -38,6 +38,12 @@ public class UserController {
         return userEntityMapper.findByGroupId(groupId);
     }
 
+    /**
+     *  模糊搜索用户数据
+     * @param text ID 或 用户姓名
+     * @param size 默认 5
+     * @return
+     */
     @GetMapping("search")
     public Object findOne(String text, Integer size) {
 
@@ -49,11 +55,7 @@ public class UserController {
         size = size == null ? 5 : size;
 
         List<UserEntity> userEntities = userEntityMapper.findByUsernameAndUserIdContaining(text, size);
-        List<String> result = new ArrayList<>();
-        userEntities.forEach(obj -> {
-            result.add(obj.getUserId() + ";" + obj.getUsername());
-        });
 
-        return result;
+        return userEntities;
     }
 }

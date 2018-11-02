@@ -27,7 +27,6 @@
                                     <span class="typeahead__query">
                                         <input class="js-typeahead"
                                                id="query-text"
-                                               name="q"
                                                type="search"
                                                autofocus
                                                autocomplete="off"
@@ -49,36 +48,199 @@
             </div>
         </div>
     </div>
-
-
+    <!-- 个人详情 -->
+    <div class="row" id="userGroup-info-panel" style="display: none;">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-8" id="info-panel">
+                            <div class="h5"><strong>基本信息:</strong></div>
+                            <div class="row" style="margin-left: 20px;">
+                                <br>
+                                <div class="col-md-4">
+                                    <label>ID:</label>&nbsp;<span id="entity-userId"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>用户名:</label>&nbsp;<span id="entity-username"></span>
+                                </div>
+                            </div>
+                            <br>
+                            <label class="h5"><strong>用户组:</strong></label>
+                            <div id="userGroup-box">
+                                <div class="row" style="margin-left: 20px;">
+                                    <div class="h5">用户组:</div>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <input type="checkbox"> 测试组1
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="checkbox"> 测试组1
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="checkbox"> 测试组1
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3" style="border-left: 1px #8c8c8c solid;margin-top: 20px;" id="menu-panel">
+                            <div class="h5">可见目录:</div>
+                            <br>
+                            <div id="menu-list"></div>
+                        </div>
+                    </div>
+                    <br><br>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script th:inline="text">
+
     $.typeahead({
-        input: ".js-typeahead",
-        minLength: 1,
-        maxItem: 15,
+        input: '.js-typeahead',
+        minLength: 0,
         order: "asc",
-        hint: true,
-        maxItemPerGroup: 5,
+        dynamic: true,
+        delay: 500,
         backdrop: {
             "background-color": "#fff"
         },
-        emptyTemplate: '没有和  "{{query}}" 相近的数据',
+        emptyTemplate: "没有找到用户ID或者用户名为 <span class='text-danger'>“{{query}}”</span> 的相关用户。",
         source: {
-            'ID': {
-                ajax: {
-                    url: "[[@{/user/search}]]"
+            user: {
+                display: "username",
+//                href: "https://www.github.com/{{username|slugify}}",
+                data: [{
+                    "username": "{{username}}",
+                    "userId": "{{userId}}",
+                }],
+                data: function () {
+                    var deferred = $.Deferred(),
+                        query = this.query;
+                    $.getJSON('[[@{/user/search}]]', {text: query}, function (data) {
+                            var array = [];
+
+                            for (var i = 0; i < data.length; i++) {
+                                var item = data[i];
+                                var userId = item.userId;
+                                var username = item.username;
+
+                                var strItem = "<span data-id='" + userId + "' data-username='" + username + "'>ID: " + userId + "&nbsp;&nbsp;&nbsp;&nbsp;用户名: " + username + "</span>";
+                                array.push(strItem);
+                            }
+
+//                            deferred.resolve(data);
+                            deferred.resolve(array);
+                        }
+                    )
+
+                    return deferred;
                 }
-            }
+            },
         },
         callback: {
             onClickAfter: function (node, a, item, event) {
-                event.preventDefault();
+
+                var userId = $(item['username']).attr("data-id");
+//                console.log(userId);
+                $("#query-text").val(userId);
+            },
+        },
+        debug: false
+    });
+
+    $("#user-info-search").click(function () {
+        var userId = $("#query-text").val();
+        if (userId != "") {
+            $.get("[[@{/userGroup/user/}]]" + userId, function (data) {
+                console.log(data);
+                var user = data['user'];
+                var userId = user['userId'];
+                var username = user['username'];
+
+                $("#entity-userId").text("\t" + userId);
+                $("#entity-username").text("\t" + username);
+
+                var menuList = data['menuList'];
+                var groupMaps = data['groupMaps'];
+
+                // 设置目录树
+                var treeStr = "<ul>" + setMenuTree(menuList) + "</ul>";
+                $("#menu-list").empty().append(treeStr);
+
+                //设置用户组
+                setUserGroupBox(groupMaps);
+
+                // 显示界面
+                $("#userGroup-info-panel").show();
+                //设置边界样式
+                $("#menu-panel").css("height", $("#info-panel").css("height"));
+            })
+        }
+    })
+
+    /**
+     *  设置目录树
+     */
+    function setMenuTree(list) {
+
+        var str = "";
+        for (var i = 0; i < list.length; i++) {
+            var node = list[i];
+            if (node['name'] != undefined) {
+                if (node['subs'] != undefined && node['subs'].length > 0) {
+                    str += "<li>-&nbsp;" + node['name'] + "</li>";
+                    str += "<li><ul>" + setMenuTree(node['subs']) + "</li></ul>";
+                } else {
+                    str += "<li>&nbsp;&nbsp;" + node['name'] + "</li>";
+                }
             }
         }
-        //debug: true
-    });
+        return str;
+    }
+
+    function setUserGroupBox(groupMaps) {
+
+        if (groupMaps == undefined) {
+            return;
+        }
+        var strItems = "";
+        for (var key in groupMaps) {
+            strItems += setBoxItem(key, groupMaps[key]);
+        }
+
+        $("#userGroup-box").empty().append(strItems);
+    }
+
+    function setBoxItem(key, list) {
+
+        var str = ""
+
+        str += '<div class="row" style="margin-left: 20px;">' +
+            '<div class="h5">' + key + ':</div>' +
+            '<div class="row" style="margin-left: 10px;">';
+
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+//            console.log(item);
+            if (item['check']) {
+                str += '<div class="col-md-3">' +
+                    '<input type="checkbox" data-id="' + item['groupId'] + '" class="check-item" checked>&nbsp;' + item['groupName'] +
+                    '</div>';
+            } else {
+                str += '<div class="col-md-3">' +
+                    '<input type="checkbox" data-id="' + item['groupId'] + '" class="check-item" >&nbsp;' + item['groupName'] +
+                    '</div>';
+            }
+        }
+
+        str += '</div></div>';
+        return str;
+    }
+
 </script>
 </body>
 </html>

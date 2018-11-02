@@ -3,6 +3,7 @@ package com.example.hrh.module.sys.dto.json.menu;
 
 
 import com.example.hrh.module.sys.dao.entities.Menu;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -23,9 +24,11 @@ public class MenuNode implements Serializable,Comparable<MenuNode>{
 	private String url;
 	
 	private Integer order;
-	
-	private boolean check = false;
-	
+
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	private Boolean check;
+
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List<MenuNode> subs = Collections.emptyList();
 
 	public MenuNode(Menu model) {
@@ -75,11 +78,11 @@ public class MenuNode implements Serializable,Comparable<MenuNode>{
 		this.subs = subs;
 	}
 
-	public boolean isCheck() {
+	public Boolean isCheck() {
 		return check;
 	}
 
-	public void setCheck(boolean check) {
+	public void setCheck(Boolean check) {
 		this.check = check;
 	}
 

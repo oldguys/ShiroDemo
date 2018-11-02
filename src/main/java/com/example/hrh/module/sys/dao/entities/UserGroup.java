@@ -5,6 +5,7 @@ package com.example.hrh.module.sys.dao.entities;/**
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.hrh.module.common.annotation.Entity;
 import com.example.hrh.module.common.dao.entities.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -28,8 +29,10 @@ public class UserGroup extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<Role> roles = Collections.emptyList();
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<UserEntity> users = Collections.emptyList();
 
     public List<UserEntity> getUsers() {

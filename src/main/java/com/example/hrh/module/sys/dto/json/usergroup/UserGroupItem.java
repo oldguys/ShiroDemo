@@ -10,17 +10,17 @@ package com.example.hrh.module.sys.dto.json.usergroup;
  */
 public class UserGroupItem {
 
-	private Integer groupId;
+	private Long groupId;
 
 	private String groupName;
 
 	private boolean check = false;
 
-	public Integer getGroupId() {
+	public Long getGroupId() {
 		return groupId;
 	}
 
-	public void setGroupId(Integer groupId) {
+	public void setGroupId(Long groupId) {
 		this.groupId = groupId;
 	}
 

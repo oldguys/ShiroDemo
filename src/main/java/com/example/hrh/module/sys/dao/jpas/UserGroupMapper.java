@@ -5,12 +5,14 @@ package com.example.hrh.module.sys.dao.jpas;/**
 
 import com.example.hrh.module.common.dao.jpas.BaseEntityMapper;
 
+import com.example.hrh.module.sys.dao.entities.UserEntity;
 import com.example.hrh.module.sys.dao.entities.UserGroup;
 
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -82,4 +84,11 @@ public interface UserGroupMapper extends BaseEntityMapper<UserGroup> {
      * @return
      */
     Integer countUserByGroupId(Long id);
+
+    /**
+     *  通过用户ID获取关联的用户组
+     * @param id 用户ID
+     * @return
+     */
+    List<UserGroup> findByUserId(Long id);
 }

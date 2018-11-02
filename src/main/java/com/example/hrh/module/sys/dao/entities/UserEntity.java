@@ -3,9 +3,12 @@ package com.example.hrh.module.sys.dao.entities;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.hrh.module.common.annotation.Entity;
 import com.example.hrh.module.common.dao.entities.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import javax.persistence.Column;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -27,6 +30,17 @@ public class UserEntity extends BaseEntity {
     private String password;
 
     private String sourcePassword;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<UserGroup> userGroups = Collections.emptyList();
+
+    public List<UserGroup> getUserGroups() {
+        return userGroups;
+    }
+
+    public void setUserGroups(List<UserGroup> userGroups) {
+        this.userGroups = userGroups;
+    }
 
     public String getUserId() {
         return userId;

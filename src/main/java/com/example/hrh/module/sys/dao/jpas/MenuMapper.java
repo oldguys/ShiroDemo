@@ -24,7 +24,7 @@ public interface MenuMapper extends BaseEntityMapper<Menu> {
      * @param userId
      * @return
      */
-    List<Menu> findAllByUserId(String userId);
+    List<Menu> findByUserId(String userId);
 
     /**
      *  通过角色ID 获取角色目录
