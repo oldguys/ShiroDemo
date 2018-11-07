@@ -13,7 +13,8 @@ import java.util.Map;
 public class ReflectUtils {
 
     /**
-     *  默认不更新集合信息
+     * 默认不更新集合信息
+     *
      * @param source
      * @param target
      */
@@ -43,6 +44,7 @@ public class ReflectUtils {
 
         Class superClazz = clazz.getSuperclass();
         if (!superClazz.equals(Object.class)) {
+            Log4jUtils.getInstance(ReflectUtils.class).warn("映射类型:" + superClazz.getSimpleName());
             updateFieldByClass(superClazz, source, target, updateCollections);
         }
 
@@ -68,7 +70,11 @@ public class ReflectUtils {
                     if (objValue instanceof Collection && !updateCollections) {
                         continue;
                     }
-                    setMethod.invoke(target, objValue);
+                    if (setMethod != null) {
+                        setMethod.invoke(target, objValue);
+                    } else {
+                        Log4jUtils.getInstance(ReflectUtils.class).warn(tranFieldToSetterMethodName(field.getName()) + " 不存在！");
+                    }
                 }
             }
         } catch (Exception e) {

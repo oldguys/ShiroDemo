@@ -17,12 +17,7 @@
 		${prefix}.description
 	</sql>
 
-	<resultMap id="RoleWithMenus" type="Role">
-		<id column="id" property="id"/>
-		<collection property="menuList" column="id" select="com.example.hrh.module.sys.dao.jpas.MenuMapper.findByRid"/>
-	</resultMap>
-
-	<select id="findOneWithMenus" parameterType="long" resultMap="RoleWithMenus">
+	<sql id="one_entity">
 		SELECT
 		<include refid="all_entity_columns">
 			<property name="prefix" value="a"/>
@@ -31,17 +26,28 @@
 		<include refid="table_name"/> a
 		WHERE
 		a.id = #{id}
+	</sql>
+
+	<resultMap id="RoleWithUserGroups" type="Role">
+		<id column="id" property="id"/>
+		<collection property="groups" column="id" select="com.example.hrh.module.sys.dao.jpas.UserGroupMapper.findByRoleId"/>
+	</resultMap>
+
+	<resultMap id="RoleWithMenus" type="Role">
+		<id column="id" property="id"/>
+		<collection property="menuList" column="id" select="com.example.hrh.module.sys.dao.jpas.MenuMapper.findByRid"/>
+	</resultMap>
+
+	<select id="findOneWithMenus" parameterType="long" resultMap="RoleWithMenus">
+		<include refid="one_entity"/>
+	</select>
+
+	<select id="findOneWithUserGroups" parameterType="long" resultMap="RoleWithUserGroups">
+		<include refid="one_entity"/>
 	</select>
 
 	<select id="findOne" parameterType="long" resultType="Role">
-		SELECT
-			<include refid="all_entity_columns">
-				<property name="prefix" value="a"/>
-			</include>
-		FROM
-			<include refid="table_name"/> a
-		WHERE
-			a.id = #{id}
+		<include refid="one_entity"/>
 	</select>
 
 	<select id="findAllByStatus" parameterType="int" resultType="Role">
@@ -85,6 +91,21 @@
 		AND a.user_group_id = #{groupId}
 	</select>
 
+	<select id="findByUserId" parameterType="string" resultType="Role">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="d"/>
+		</include>
+		FROM
+			sys_user_user_group a
+		INNER JOIN sys_user_group b ON a.user_group_id = b.id
+		INNER JOIN sys_role_user_group c ON a.user_group_id = c.user_group_id
+		INNER JOIN sys_role d ON c.role_id = d.id
+		WHERE
+			b.`status` = 1
+		AND d.`status` = 1
+		AND a.user_id = #{userId}
+	</select>
 
 	<insert id="save" parameterType="Role" keyProperty="id" useGeneratedKeys="true">
 		INSERT <include refid="table_name"/>

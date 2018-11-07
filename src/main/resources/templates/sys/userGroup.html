@@ -20,47 +20,47 @@
     <table id="records-info"></table>
 
     <!--<div class="row">-->
-        <!--<div class="col-md-9">-->
-            <!--<div class="panel panel-default">-->
-                <!--<div class="panel-body">-->
-                    <!--<div class="row">-->
-                        <!--<div class="col-md-3">-->
-                            <!--<label>ID:</label>&nbsp;&nbsp;ssss-->
-                        <!--</div>-->
-                        <!--<div class="col-md-3">-->
-                            <!--<label>名称:</label>&nbsp;&nbsp;ssss-->
-                        <!--</div>-->
-                        <!--<div class="col-md-3">-->
-                            <!--<label>类别:</label>&nbsp;&nbsp;ssss-->
-                        <!--</div>-->
-                        <!--<div class="col-md-3">-->
-                            <!--<label>用户数:</label>&nbsp;&nbsp;ssss-->
-                        <!--</div>-->
-                    <!--</div>-->
-                    <!--<div class="row">-->
-                        <!--<div class="col-md-9">-->
-                            <!--<label>描述:</label>&nbsp;&nbsp;ssss-->
-                        <!--</div>-->
-                    <!--</div>-->
-                    <!--<hr>-->
-                    <!--<div class="row">-->
-                        <!--<div class="col-md-9">-->
-                            <!--<label>角色管理:</label>-->
-                            <!--<div style="padding-left: 10px;">-->
-                                <!--<div>-->
-                                    <!--<label>资源角色:</label>-->
-                                    <!--<div style="padding-left: 10px;">sss&nbsp;ssss</div>-->
-                                <!--</div>-->
-                                <!--<div>-->
-                                    <!--<label>目录角色:</label>-->
-                                    <!--<div style="padding-left: 10px;">sss&nbsp;ssss</div>-->
-                                <!--</div>-->
-                            <!--</div>-->
-                        <!--</div>-->
-                    <!--</div>-->
-                <!--</div>-->
-            <!--</div>-->
-        <!--</div>-->
+    <!--<div class="col-md-9">-->
+    <!--<div class="panel panel-default">-->
+    <!--<div class="panel-body">-->
+    <!--<div class="row">-->
+    <!--<div class="col-md-3">-->
+    <!--<label>ID:</label>&nbsp;&nbsp;ssss-->
+    <!--</div>-->
+    <!--<div class="col-md-3">-->
+    <!--<label>名称:</label>&nbsp;&nbsp;ssss-->
+    <!--</div>-->
+    <!--<div class="col-md-3">-->
+    <!--<label>类别:</label>&nbsp;&nbsp;ssss-->
+    <!--</div>-->
+    <!--<div class="col-md-3">-->
+    <!--<label>用户数:</label>&nbsp;&nbsp;ssss-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div class="row">-->
+    <!--<div class="col-md-9">-->
+    <!--<label>描述:</label>&nbsp;&nbsp;ssss-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<hr>-->
+    <!--<div class="row">-->
+    <!--<div class="col-md-9">-->
+    <!--<label>角色管理:</label>-->
+    <!--<div style="padding-left: 10px;">-->
+    <!--<div>-->
+    <!--<label>资源角色:</label>-->
+    <!--<div style="padding-left: 10px;">sss&nbsp;ssss</div>-->
+    <!--</div>-->
+    <!--<div>-->
+    <!--<label>目录角色:</label>-->
+    <!--<div style="padding-left: 10px;">sss&nbsp;ssss</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
     <!--</div>-->
 
 </div>
@@ -280,7 +280,7 @@
 
             return "<div id='detail-panel-" + id + "'></div>";
         },
-        onLoadSuccess: function (data) {
+        onPostBody: function () {
 
             // 更改 展开样式
             var list = $("#records-info").find(".detail-icon");
@@ -288,7 +288,6 @@
                 var item = list[i];
                 $(item).css("color", "#555");
             }
-
         },
         columns: [
             {
@@ -487,9 +486,9 @@
             for (var i = 0; i < list.length; i++) {
                 var item = list[i];
                 if (item['check']) {
-                    btnList += "<a style='margin: 5px;' class='btn btn-default btn-sm btn-check active' data-selected='" + 1 + "' data-id='" + item['id'] + "' data-key='" + key + "'>" + item['name'] + "</a>";
+                    btnList += "<a style='margin: 5px;' class='btn btn-default btn-sm btn-check active' data-selected='" + 1 + "' data-id='" + item['id'] + "' data-key='" + key + "'>" + item['id'] + " - " + item['name'] + "</a>";
                 } else {
-                    btnList += "<a style='margin: 5px;' class='btn btn-default btn-sm btn-check' data-selected='" + 0 + "' data-id='" + item['id'] + "' data-key='" + key + "'>" + item['name'] + "</a>";
+                    btnList += "<a style='margin: 5px;' class='btn btn-default btn-sm btn-check' data-selected='" + 0 + "' data-id='" + item['id'] + "' data-key='" + key + "'>" + item['id'] + " - " + item['name'] + "</a>";
                 }
 
             }
@@ -508,18 +507,18 @@
         for (var key in permBtnMap) {
             var list = permBtnMap[key];
 
-            str += "<div><div class='h6'>" + key + ":</div><ol>"
+            str += "<div><div class='h6'>" + key + ":</div><ul>"
             var btnList = "";
 
             for (var i = 0; i < list.length; i++) {
                 var item = list[i];
                 if (item['check']) {
-                    btnList += "<li><div>" + item['name'] + "<a data-id='" + item['id'] + "'  data-key='" + key + "' class='text-danger pull-right btn-check'><i class='glyphicon glyphicon-remove '></i></a></div></li>";
+                    btnList += "<li><div>" + item['id'] + " - " + item['name'] + "<a data-id='" + item['id'] + "'  data-key='" + key + "' class='text-danger pull-right btn-check'><i class='glyphicon glyphicon-remove '></i></a></div></li>";
                     // 配置选择值
                     selectedIds += item['id'] + ";";
                 }
             }
-            str += btnList + "</ol></div>";
+            str += btnList + "</ul></div>";
         }
         $("#tags-selected-panel").empty().append(str);
         // 注入表单
@@ -722,6 +721,8 @@
                 var item = users[i];
                 userMap[item['userId']] = item['username'];
             }
+        } else {
+            $("#record-selected-users").bootstrapTable("removeAll");
         }
         //刷新用户组
         $("#record-users").bootstrapTable("refresh");
@@ -794,7 +795,7 @@
             '<hr>' +
             '<div class="row">' +
             '<div class="col-md-9">' +
-            '<label>角色管理:</label>'+
+            '<label>角色:</label>' +
             '<div style="padding-left: 10px;">';
 
         for (var key in roleMap) {
@@ -814,15 +815,15 @@
             }
 
             str += '<div>' +
-                        '<label>' + key + ':</label>' +
-                        '<div style="padding-left: 10px;">' + itemList + '</div>' +
-                    '</div>';
+                '<label>' + key + ':</label>' +
+                '<div style="padding-left: 10px;">' + itemList + '</div>' +
+                '</div>';
         }
 
 
-        str +='</div></div></div></div></div></div></div>';
+        str += '</div></div></div></div></div></div></div>';
 
-        $("#detail-panel-"+userGroup['id']).html(str);
+        $("#detail-panel-" + userGroup['id']).html(str);
     }
 </script>
 </body>

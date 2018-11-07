@@ -16,6 +16,18 @@
 		${prefix}.`status`
 	</sql>
 
+    <sql id="one_entity">
+        SELECT
+        <include refid="all_entity_columns">
+            <property name="prefix" value="a"/>
+        </include>
+        FROM
+        <include refid="table_name"/>
+        a
+        WHERE
+        a.id = #{id}
+    </sql>
+
     <resultMap id="UserGroupWithUsers" type="UserGroup">
         <id column="id" property="id"/>
         <collection property="users" column="id" select="com.example.hrh.module.sys.dao.jpas.UserEntityMapper.findByGroupId"/>
@@ -44,41 +56,27 @@
     </select>
 
     <select id="findOne" resultType="UserGroup" parameterType="long">
-        SELECT
-        <include refid="all_entity_columns">
-            <property name="prefix" value="a"/>
-        </include>
-        FROM
-        <include refid="table_name"/>
-        a
-        WHERE
-        a.id = #{id}
+        <include refid="one_entity"/>
     </select>
 
     <select id="findOneWithRoles" parameterType="long" resultMap="UserGroupWithRoles">
-        SELECT
-        <include refid="all_entity_columns">
-            <property name="prefix" value="a"/>
-        </include>
-        FROM
-        <include refid="table_name"/>
-        a
-        WHERE
-        a.id = #{id}
-        AND a.`status` = 1
+        <include refid="one_entity"/>
     </select>
 
-    <select id="findUserGroupWithUsers" parameterType="long" resultMap="UserGroupWithUsers">
+    <select id="findOneWithUsers" parameterType="long" resultMap="UserGroupWithUsers">
+        <include refid="one_entity"/>
+    </select>
+
+    <select id="findByRoleId" parameterType="long" resultType="UserGroup">
         SELECT
         <include refid="all_entity_columns">
-            <property name="prefix" value="a"/>
+            <property name="prefix" value="b"/>
         </include>
         FROM
-        <include refid="table_name"/>
-        a
+            sys_role_user_group a
+        INNER JOIN sys_user_group b ON a.user_group_id = b.id
         WHERE
-        a.id = #{id}
-        AND a.`status` = 1
+            a.role_id = #{id}
     </select>
 
     <select id="countUserByGroupId" resultType="int" parameterType="long">
@@ -162,6 +160,18 @@
         </foreach>
     </insert>
 
+    <insert id="associateByUserId">
+        INSERT sys_user_user_group
+        (user_id, user_group_id)
+        VALUES
+        <foreach collection="idSet" item="groupId" separator=",">
+            (
+            #{userId},
+            #{groupId}
+            )
+        </foreach>
+    </insert>
+
     <delete id="removeUsers" parameterType="long">
 		DELETE FROM sys_user_user_group WHERE user_group_id = #{id}
 	</delete>
@@ -173,6 +183,9 @@
         </foreach>
     </delete>
 
+    <delete id="removeAssociateByUserId" parameterType="string">
+        DELETE FROM sys_user_user_group WHERE user_id = #{id}
+    </delete>
 
 
 </mapper>

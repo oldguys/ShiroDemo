@@ -150,4 +150,9 @@ public class RoleController extends BaseController{
         resultCode = roleMapper.associateMenus(id, idSet);
         return resultCode > 0 ? HttpJsonUtils.buildSuccess("成功关联所有目录！") : HttpJsonUtils.ERROR;
     }
+
+    @GetMapping("userGroup/{id}")
+    public Object getRoleWithUserGroup(@PathVariable Long id){
+        return roleService.findOneWithUserGroup(id);
+    }
 }

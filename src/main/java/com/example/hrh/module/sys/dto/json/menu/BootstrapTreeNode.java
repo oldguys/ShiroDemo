@@ -4,7 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Collections;
 import java.util.List;
-
+/**
+ * @Description: 树节点
+ * @Author: ren
+ * @CreateTime: 2018-10-2018/10/26 0026 14:44
+ */
 public class BootstrapTreeNode {
 
     private Long id;
@@ -13,20 +17,21 @@ public class BootstrapTreeNode {
 
     private State state;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String icon;
+
     @JsonInclude(value = JsonInclude.Include.NON_EMPTY)
     private List<BootstrapTreeNode> nodes = Collections.emptyList();
 
     public BootstrapTreeNode() {
     }
 
-    public BootstrapTreeNode(MenuNode node) {
+    public String getIcon() {
+        return icon;
+    }
 
-        this.id = node.getId();
-        this.text = node.getName();
-        this.state = new State(false);
-        if (node.isCheck()) {
-            state.setChecked(true);
-        }
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     public Long getId() {

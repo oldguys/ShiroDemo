@@ -4,7 +4,6 @@ package com.example.hrh.module.sys.dao.jpas;/**
 
 import com.example.hrh.module.common.dao.jpas.BaseEntityMapper;
 import com.example.hrh.module.sys.dao.entities.Role;
-import com.example.hrh.module.sys.dto.json.roles.RoleInfo;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -46,7 +45,7 @@ public interface RoleMapper extends BaseEntityMapper<Role> {
      * @param userId
      * @return
      */
-    Set<String> findRoleFlagByUserId(String userId);
+    List<Role> findByUserId(String userId);
 
 
     /**
@@ -63,4 +62,11 @@ public interface RoleMapper extends BaseEntityMapper<Role> {
      * @return
      */
     int associateMenus(@Param("id") Long id,@Param("idSet")  Set<Long> idSet);
+
+    /**
+     *  级联获取用户组
+     * @param id 角色ID
+     * @return
+     */
+    Role findOneWithUserGroups(Long id);
 }

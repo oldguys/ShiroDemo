@@ -55,47 +55,63 @@
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-md-8" id="info-panel">
-                            <div class="h5"><strong>基本信息:</strong></div>
-                            <div class="row" style="margin-left: 20px;">
-                                <br>
-                                <div class="col-md-4">
-                                    <label>ID:</label>&nbsp;<span id="entity-userId"></span>
-                                </div>
-                                <div class="col-md-4">
-                                    <label>用户名:</label>&nbsp;<span id="entity-username"></span>
-                                </div>
-                            </div>
-                            <br>
-                            <label class="h5"><strong>用户组:</strong></label>
-                            <div id="userGroup-box">
+                            <form id="entity-from">
+                                <div class="h5"><strong>基本信息:</strong></div>
                                 <div class="row" style="margin-left: 20px;">
-                                    <div class="h5">用户组:</div>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <input type="checkbox"> 测试组1
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="checkbox"> 测试组1
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="checkbox"> 测试组1
-                                        </div>
+                                    <br>
+                                    <div class="col-md-4">
+                                        <label>ID:</label>&nbsp;<span id="entity-userId"></span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label>用户名:</label>&nbsp;<span id="entity-username"></span>
                                     </div>
                                 </div>
-                            </div>
+                                <hr>
+                                <label class="h5"><strong>用户组:</strong></label>
+                                <div id="userGroup-box">
+                                </div>
+                                <hr>
+                                <label class="h5"><strong>角色:</strong></label>
+                                <div id="roles-box">
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-md-2 pull-right">
+                                        <a class="btn btn-warning" id="btn-submit">更新权限</a>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
-                        <div class="col-md-3" style="border-left: 1px #8c8c8c solid;margin-top: 20px;" id="menu-panel">
+                        <div class="col-md-3" style="border-left: 1px solid #cccccc;margin-top: 20px;margin-left: 20px;"
+                             id="menu-panel">
                             <div class="h5">可见目录:</div>
                             <br>
                             <div id="menu-list"></div>
                         </div>
                     </div>
-                    <br><br>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- 编辑框 -->
+<div class="modal fade" id="msg-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">消息</h4>
+            </div>
+            <div class="modal-body" id="msg-box">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <script th:inline="text">
 
@@ -166,6 +182,7 @@
 
                 var menuList = data['menuList'];
                 var groupMaps = data['groupMaps'];
+                var roleMaps = data['roleMaps'];
 
                 // 设置目录树
                 var treeStr = "<ul>" + setMenuTree(menuList) + "</ul>";
@@ -173,6 +190,7 @@
 
                 //设置用户组
                 setUserGroupBox(groupMaps);
+                setRolesBox(roleMaps);
 
                 // 显示界面
                 $("#userGroup-info-panel").show();
@@ -191,9 +209,9 @@
         for (var i = 0; i < list.length; i++) {
             var node = list[i];
             if (node['name'] != undefined) {
-                if (node['subs'] != undefined && node['subs'].length > 0) {
+                if (node['subMenus'] != undefined && node['subMenus'].length > 0) {
                     str += "<li>-&nbsp;" + node['name'] + "</li>";
-                    str += "<li><ul>" + setMenuTree(node['subs']) + "</li></ul>";
+                    str += "<li><ul>" + setMenuTree(node['subMenus']) + "</li></ul>";
                 } else {
                     str += "<li>&nbsp;&nbsp;" + node['name'] + "</li>";
                 }
@@ -202,6 +220,10 @@
         return str;
     }
 
+    /**
+     * 用户组 ==============================================================
+     **/
+
     function setUserGroupBox(groupMaps) {
 
         if (groupMaps == undefined) {
@@ -209,13 +231,13 @@
         }
         var strItems = "";
         for (var key in groupMaps) {
-            strItems += setBoxItem(key, groupMaps[key]);
+            strItems += setUserGroupBoxItem(key, groupMaps[key]);
         }
 
         $("#userGroup-box").empty().append(strItems);
     }
 
-    function setBoxItem(key, list) {
+    function setUserGroupBoxItem(key, list) {
 
         var str = ""
 
@@ -228,11 +250,11 @@
 //            console.log(item);
             if (item['check']) {
                 str += '<div class="col-md-3">' +
-                    '<input type="checkbox" data-id="' + item['groupId'] + '" class="check-item" checked>&nbsp;' + item['groupName'] +
+                    '<input type="checkbox" name="checkList" value="' + item['groupId'] + '" class="check-item" checked>&nbsp;' + item['groupName'] +
                     '</div>';
             } else {
                 str += '<div class="col-md-3">' +
-                    '<input type="checkbox" data-id="' + item['groupId'] + '" class="check-item" >&nbsp;' + item['groupName'] +
+                    '<input type="checkbox" name="checkList" value="' + item['groupId'] + '" class="check-item" >&nbsp;' + item['groupName'] +
                     '</div>';
             }
         }
@@ -240,6 +262,68 @@
         str += '</div></div>';
         return str;
     }
+
+    /**
+     *  角色组 ===================================================================
+     * @param groupMaps
+     */
+
+    function setRolesBox(rolesMap) {
+
+        if (rolesMap == undefined) {
+            return;
+        }
+        var strItems = "";
+        for (var key in rolesMap) {
+            strItems += setRoleBoxItem(key, rolesMap[key]);
+        }
+
+        $("#roles-box").empty().append(strItems);
+    }
+
+    function setRoleBoxItem(key, list) {
+
+        var str = ""
+
+        str += '<div class="row" style="margin-left: 20px;">' +
+            '<div class="h5">' + key + ':</div>' +
+            '<div class="row" style="margin-left: 10px;">';
+
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+            str += '<div class="col-md-3">' +
+                (i + 1) + '. ' + item['name'] +
+                '</div>';
+
+        }
+
+        str += '</div></div>';
+        return str;
+    }
+
+    /**
+     * 更新权限 ==========================================
+     */
+    $("#btn-submit").click(function () {
+        $.post("[[@{/userGroup/}]]" + $("#entity-userId").text() + "/modification", $("#entity-from").serializeArray(), function (data) {
+            if (data['status'] == 'OK') {
+                // 更新结果提醒
+                $("#msg-box").html("<div class='text-success'>更新成功！</div>");
+                $("#user-info-search").trigger("click");
+            } else {
+                $("#msg-box").html("<div class='text-danger'>出现异常，请联系系统管理员！</div>");
+            }
+            $("#msg-panel").modal("show");
+        }).error(function (data, json) {
+            var message = data['responseJSON']['message'];
+
+            message = message != undefined ? message : "系统异常，请联系管理员！";
+            $("#msg-box").html("<div class='text-danger'>" + message + "</div>")
+            $("#msg-panel").modal("show");
+        }, "json");
+    })
+
+
 
 </script>
 </body>

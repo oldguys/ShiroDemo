@@ -3,7 +3,6 @@ package com.example.hrh.module.sys.controllers;/**
  */
 
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.hrh.module.sys.dao.entities.UserEntity;
 import com.example.hrh.module.sys.dao.jpas.UserEntityMapper;
 
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

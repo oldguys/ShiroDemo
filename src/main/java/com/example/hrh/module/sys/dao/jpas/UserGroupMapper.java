@@ -53,7 +53,7 @@ public interface UserGroupMapper extends BaseEntityMapper<UserGroup> {
      * @param id
      * @return
      */
-    UserGroup findUserGroupWithUsers(Long id);
+    UserGroup findOneWithUsers(Long id);
 
     /**
      *  移除用户组关联的用户
@@ -91,4 +91,26 @@ public interface UserGroupMapper extends BaseEntityMapper<UserGroup> {
      * @return
      */
     List<UserGroup> findByUserId(Long id);
+
+    /**
+     *  通过角色ID获取关联的用户集
+     * @param id 角色ID
+     * @return
+     */
+    List<UserGroup> findByRoleId(Long id);
+
+    /**
+     *  移除关联
+     * @param userId
+     * @return
+     */
+    int removeAssociateByUserId(String userId);
+
+    /**
+     *  添加关联
+     * @param userId
+     * @param idSet
+     * @return
+     */
+    int associateByUserId(@Param("userId") String userId,@Param("idSet")  List<Long> idSet);
 }

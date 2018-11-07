@@ -5,6 +5,7 @@ package com.example.hrh.module.sys.dao.entities;/**
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.hrh.module.common.annotation.Entity;
 import com.example.hrh.module.common.dao.entities.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,28 +18,40 @@ import java.util.List;
  */
 @Entity(pre = "sys_")
 @TableName(value = "sys_menu" )
-public class Menu extends BaseEntity implements Comparable<Menu>{
+public class Menu extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     private String url;
 
     private String name;
 
-    private Integer order;
-
-    private Long parentId = 0L;
-
     private String icon;
 
     /**
-     * 菜单
+     *  子节点列表
      */
-    private List<Menu> subMenu = Collections.emptyList();
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<Menu> subMenus = Collections.emptyList();
 
-    @Override
-    public int compareTo(Menu o) {
+    /**
+     *  父级节点
+     */
+    private Menu parentMenu;
 
-        return this.order - o.order;
+    public List<Menu> getSubMenus() {
+        return subMenus;
+    }
+
+    public void setSubMenus(List<Menu> subMenus) {
+        this.subMenus = subMenus;
+    }
+
+    public Menu getParentMenu() {
+        return parentMenu;
+    }
+
+    public void setParentMenu(Menu parentMenu) {
+        this.parentMenu = parentMenu;
     }
 
     public String getUrl() {
@@ -61,30 +74,6 @@ public class Menu extends BaseEntity implements Comparable<Menu>{
         this.name = name;
     }
 
-    public Integer getOrder() {
-        return order;
-    }
-
-    public void setOrder(Integer order) {
-        this.order = order;
-    }
-
-    public Long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
-    }
-
-    public List<Menu> getSubMenu() {
-        return subMenu;
-    }
-
-    public void setSubMenu(List<Menu> subMenu) {
-        this.subMenu = subMenu;
-    }
-
     public String getIcon() {
         return icon;
     }
@@ -98,10 +87,7 @@ public class Menu extends BaseEntity implements Comparable<Menu>{
         return "Menu{" +
                 "url='" + url + '\'' +
                 ", name='" + name + '\'' +
-                ", order=" + order +
-                ", parentId=" + parentId +
                 ", icon='" + icon + '\'' +
-                ", subMenu=" + subMenu +
                 "} " + super.toString();
     }
 }

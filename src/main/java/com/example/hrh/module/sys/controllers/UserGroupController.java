@@ -8,14 +8,12 @@ import com.example.hrh.module.common.utils.ReflectUtils;
 import com.example.hrh.module.common.utils.ValidateUtils;
 
 import com.example.hrh.module.sys.dao.entities.UserGroup;
-import com.example.hrh.module.sys.dao.jpas.UserEntityMapper;
 import com.example.hrh.module.sys.dao.jpas.UserGroupMapper;
 
 import com.example.hrh.module.sys.dto.form.usergroup.UserGroupAddForm;
 
 import com.example.hrh.module.sys.dto.form.usergroup.UserGroupUpdateForm;
 
-import com.example.hrh.module.sys.dto.json.usergroup.UserGroupInfo;
 import com.example.hrh.module.sys.dto.json.usergroup.UserGroupWithRoles;
 import com.example.hrh.module.sys.service.UserGroupService;
 
@@ -28,6 +26,7 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -148,11 +147,12 @@ public class UserGroupController extends BaseController {
 
     @GetMapping("{id}/users")
     public Object getUserGroupWithUsers(@PathVariable Long id) {
-        return userGroupMapper.findUserGroupWithUsers(id);
+        return userGroupMapper.findOneWithUsers(id);
     }
 
     /**
-     *  关联单用户
+     * 关联单用户
+     *
      * @param groupId
      * @param userId
      * @return
@@ -164,38 +164,41 @@ public class UserGroupController extends BaseController {
         Set<String> userIdSet = new HashSet<>();
         userIdSet.add(userId);
         int resultCode = userGroupMapper.associateUsers(groupId, userIdSet);
-        UserGroup entity = userGroupMapper.findUserGroupWithUsers(groupId);
+        UserGroup entity = userGroupMapper.findOneWithUsers(groupId);
 
         return resultCode > 0 ? HttpJsonUtils.buildSuccess("更新成功！", entity) : HttpJsonUtils.ERROR;
     }
 
     /**
-     *  关联单用户
+     * 关联单用户
+     *
      * @param groupId
      * @param userId
      * @return
      */
     @PostMapping("remove/associate/{groupId}/{userId}")
     @Transactional(rollbackOn = Exception.class)
-    public Object removeAssociateUser(@PathVariable Long groupId, @PathVariable String userId) {
+    public Object removeAssociateUser(@PathVariable("groupId") Long groupId, @PathVariable("userId") String userId) {
 
         Set<String> userIdSet = new HashSet<>();
         userIdSet.add(userId);
+
         int resultCode = userGroupMapper.removeAssociateUsers(groupId, userIdSet);
-        UserGroup entity = userGroupMapper.findUserGroupWithUsers(groupId);
+        UserGroup entity = userGroupMapper.findOneWithUsers(groupId);
 
         return resultCode > 0 ? HttpJsonUtils.buildSuccess("更新成功！", entity) : HttpJsonUtils.ERROR;
     }
 
     /**
-     *  更新用户组关联用户列表
+     * 更新用户组关联用户列表
+     *
      * @param id
      * @param userIds
      * @return
      */
     @PostMapping("/users/modification")
     @Transactional(rollbackOn = Exception.class)
-    public Object associateUsers(@PathVariable Long id, @PathVariable String userIds){
+    public Object associateUsers(@PathVariable Long id, @PathVariable String userIds) {
         if (null == id) {
             throw new FormValidException("表单数据不完整！");
         }
@@ -210,23 +213,38 @@ public class UserGroupController extends BaseController {
         // 更新关联
         resultCode = userGroupMapper.associateUsers(id, idSet);
         // 获取更新结果
-        UserGroup entity = userGroupMapper.findUserGroupWithUsers(id);
+        UserGroup entity = userGroupMapper.findOneWithUsers(id);
         return resultCode > 0 ? HttpJsonUtils.buildSuccess("更新成功！", entity) : HttpJsonUtils.ERROR;
     }
 
     /**
-     *  获取指定用户组的详细信息
+     * 获取指定用户组的详细信息
+     *
      * @param id
      * @return
      */
     @GetMapping("{id}/all")
-    public Object getUserGroupInfo(@PathVariable Long id){
+    public Object getUserGroupInfo(@PathVariable Long id) {
         return userGroupService.getUserInfo(id);
     }
 
     @GetMapping("user/{userId}")
-    public Object getUserWithUserGroup(@PathVariable String userId){
+    public Object getUserWithUserGroup(@PathVariable String userId) {
         return userGroupService.getUserWithUserGroup(userId);
+    }
+
+    @PostMapping("{userId}/modification")
+    @Transactional(rollbackOn = Exception.class)
+    public Object userModify(@PathVariable("userId") String userId, @RequestParam(required = false) List<Long> checkList) {
+
+        System.out.println("checkList:" + checkList);
+
+        int resultCode = userGroupMapper.removeAssociateByUserId(userId);
+        if (checkList != null && !checkList.isEmpty()) {
+            resultCode = userGroupMapper.associateByUserId(userId, checkList);
+        }
+
+        return resultCode > 0 ? HttpJsonUtils.OK : HttpJsonUtils.ERROR;
     }
 
 

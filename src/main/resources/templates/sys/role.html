@@ -48,7 +48,7 @@
                         <span class="help-block"></span>
                     </div>
                     <div class="form-group">
-                        <label class="control-label">角色标识:</label>
+                        <label class="control-label text-danger">角色标识:</label>
                         <input type="text" class="form-control" name="roleFlag" id="entity-roleFlag"
                                autocomplete="off">
                         <span class="help-block"></span>
@@ -180,6 +180,28 @@
         pageSize: 30,
         pageList: [10, 20, 30, 50, 'all'],//分页步进值
         search: true, //显示搜索框
+        detailView: true,
+        detailFormatter: function (index, row, element) {
+
+            var id = row['id']
+
+            $.get("[[@{/role/userGroup/}]]" + id, function (data) {
+                if (data != undefined) {
+                    setDetail(data);
+                }
+            })
+
+            return "<div id='detail-panel-" + id + "'></div>";
+        },
+        onPostBody: function () {
+
+            // 更改 展开样式
+            var list = $("#records-info").find(".detail-icon");
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                $(item).css("color", "#555");
+            }
+        },
         columns: [
             {
                 field: 'id',
@@ -188,7 +210,7 @@
             },
             {
                 field: 'name',
-                title: '标题',
+                title: '角色名',
                 width: '25%',
                 sortable: true,
                 formatter: function (value, row, index) {
@@ -446,7 +468,7 @@
             }
         }
 
-        var treeStr = "<ul>" + getSelectedTreeStr( menuTree) + "</ul>";
+        var treeStr = "<ul>" + getSelectedTreeStr(menuTree) + "</ul>";
 
         // 注入到表单
         $("#entity-menuIds").val(menuIds);
@@ -454,7 +476,7 @@
         $("#menu-list").empty().append(treeStr);
     }
 
-    function getSelectedTreeStr( list) {
+    function getSelectedTreeStr(list) {
 
         var str = "";
 
@@ -464,7 +486,7 @@
                 if (menuSet[node['id']] != undefined) {
                     if (node['nodes'] != undefined && node['nodes'].length > 0) {
                         str += "<li>-&nbsp;" + menuSet[node['id']] + "</li>";
-                        str += "<li><ul>" + getSelectedTreeStr( node['nodes']) + "</li></ul>";
+                        str += "<li><ul>" + getSelectedTreeStr(node['nodes']) + "</li></ul>";
                     } else {
                         str += "<li>&nbsp;&nbsp;" + menuSet[node['id']] + "</li>";
                     }
@@ -495,6 +517,60 @@
             $("#info-panel").modal("show");
         }, "json");
     })
+
+    /**
+     *  详情 =================================================================================================
+     */
+
+    /**
+     *  #records-info detail 配置项
+     * @param data
+     */
+    function setDetail(data) {
+        var entity = data['entity'];
+        var roleMap = data['map'];
+
+        var str = '<div class="row">' +
+            '<div class="col-md-9">' +
+            '<div class="panel panel-default">' +
+            '<div class="panel-body">' +
+            '<div class="row">' +
+            '<div class="col-md-3"><label>ID:</label>&nbsp;&nbsp;' + entity['id'] + '</div>' +
+            '<div class="col-md-3"><label>名称:</label>&nbsp;&nbsp;' + entity['name'] + '</div>' +
+            '<div class="col-md-3"><label>类别:</label>&nbsp;&nbsp;' + typeDataMap[entity['type']] + '</div>' +
+            '</div>' +
+            '<div class="row">' +
+            '<div class="col-md-9"><label>描述:</label>&nbsp;&nbsp;' + entity['description'] + '</div>' +
+            '</div>' +
+            '<hr>' +
+            '<div class="row">' +
+            '<div class="col-md-9">' +
+            '<div style="padding-left: 10px;">';
+
+        for (var key in roleMap) {
+
+            var list = roleMap[key];
+            if (list == undefined) {
+                return;
+            }
+
+            var itemList = "";
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                itemList += "<li>" + item['groupName'] + "</li>";
+            }
+
+            str += '<div>' +
+                '<label>' + key + ':</label>' +
+                '<ol>' + itemList + '</ol>' +
+                '</div>';
+        }
+
+
+        str += '</div></div></div></div></div></div></div>';
+
+        $("#detail-panel-" + entity['id']).html(str);
+    }
 </script>
 </body>
 </html>

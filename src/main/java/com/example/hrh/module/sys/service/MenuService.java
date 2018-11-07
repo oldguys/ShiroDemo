@@ -1,297 +1,187 @@
 package com.example.hrh.module.sys.service;/**
- * Created by Administrator on 2018/10/26 0026.
+ * Created by Administrator on 2018/11/4 0004.
  */
 
-import com.example.hrh.module.common.utils.ShiroUtils;
+import com.example.hrh.module.common.exceptions.FormValidException;
+import com.example.hrh.module.common.utils.ReflectUtils;
+import com.example.hrh.module.common.utils.ValidateUtils;
 import com.example.hrh.module.sys.dao.entities.Menu;
+import com.example.hrh.module.sys.dao.entities.TreeNode;
 import com.example.hrh.module.sys.dao.jpas.MenuMapper;
-import com.example.hrh.module.sys.dto.json.menu.MenuNode;
+import com.example.hrh.module.sys.dto.form.menu.MenuAddForm;
+import com.example.hrh.module.sys.dto.form.menu.MenuUpdateForm;
 import com.example.hrh.module.sys.dto.json.menu.BootstrapTreeNode;
+import com.example.hrh.module.sys.dto.json.menu.MenuInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import java.util.*;
 
 /**
- * @Description: 目录
+ * @Description:
  * @Author: ren
- * @CreateTime: 2018-10-2018/10/26 0026 14:44
+ * @CreateTime: 2018-11-2018/11/4 0004 22:58
  */
 @Service
 public class MenuService {
 
-
-    private static final long PARENT_MENU_CODE = 0;
-
     @Autowired
-    private MenuMapper menuMapper;
+    public MenuMapper menuMapper;
+    @Autowired
+    private TreeService treeService;
 
     /**
-     *  获取当前系统所有可用目录
+     * 通过角色ID获取目录
+     *
+     * @param roleId
      * @return
      */
-    public List<MenuNode> getActiveMenuTree() {
-        List<Menu> resources = menuMapper.findAllByStatus(1);
+    public List<Menu> getMenuTreeByRoleId(Long roleId) {
 
-        return getMenuTree(resources);
+        List<Menu> menuList = menuMapper.findByRid(roleId);
+        List<Menu> resultMenuTree = getMenuTree(menuList);
+
+        return resultMenuTree;
     }
 
     /**
-     *  转换为目录树
-     * @param resources
-     * @return
-     */
-    private List<MenuNode> getMenuTree(List<Menu> resources) {
-        List<MenuNode> menu = new ArrayList<>();
-
-        List<Menu> remove = new ArrayList<>();
-
-        //设置主目录
-        for (Menu model : resources) {
-            if (model.getParentId().equals(PARENT_MENU_CODE)) {
-                menu.add(new MenuNode(model));
-                remove.add(model);
-            }
-        }
-        resources.removeAll(remove);
-        remove.clear();
-
-        //填充子目录
-        appendNode(resources, remove, menu);
-
-        //排序
-        sortMenuNode(menu);
-        return menu;
-    }
-
-    /**
-     * 填充节点
+     * 通过用户ID获取 用户具有的目录树
      *
-     * @param resources
-     * @param remove
-     * @param menu      树形节点
-     */
-    private void appendNode(List<Menu> resources, List<Menu> remove, List<MenuNode> menu) {
-        for (MenuNode node : menu) {
-            if (resources.isEmpty()) {
-                break;
-            }
-            List<MenuNode> subs = new ArrayList<>();
-            for (Menu temp : resources) {
-                if (temp.getParentId().equals(node.getId())) {
-                    subs.add(new MenuNode(temp));
-                    remove.add(temp);
-                }
-            }
-            if (!subs.isEmpty()) {
-                node.setSubs(subs);
-                resources.removeAll(remove);
-                remove.clear();
-                appendNode(resources, remove, subs);
-            }
-        }
-    }
-
-
-    /**
-     * 排序Menu
-     *
-     * @param menu
-     */
-    private void sortMenuNode(List<MenuNode> menu) {
-        Collections.sort(menu);
-        for (MenuNode node : menu) {
-            if (!node.getSubs().isEmpty()) {
-                sortMenuNode(node.getSubs());
-            }
-        }
-    }
-
-
-    public List<Menu> getCurrentUserMenu() {
-
-        String userId = (String) ShiroUtils.getCurrentUser();
-
-        List<Menu> allMenu = menuMapper.findByUserId(userId);
-
-        // 该用户没有权限
-        if (allMenu.isEmpty()) {
-            return null;
-        }
-
-        List<Menu> parents = new ArrayList<>();
-
-        for (Menu menu : allMenu) {
-            if (menu.getParentId().equals(PARENT_MENU_CODE)) {
-                parents.add(menu);
-            }
-        }
-
-        allMenu.removeAll(parents);
-
-        // 拼接节点
-        appendNode(allMenu, parents);
-
-        //目录排序
-        sortMenu(parents);
-
-        return parents;
-    }
-
-    /**
-     * ============================================================================
-     */
-
-
-
-    /**
-     * 排序吗目录
-     *
-     * @param parents
-     */
-    private void sortMenu(List<Menu> parents) {
-
-        Collections.sort(parents);
-
-        for (Menu menu : parents) {
-            if (!menu.getSubMenu().isEmpty()) {
-                sortMenu(menu.getSubMenu());
-            }
-        }
-
-    }
-
-    /**
-     * 拼接节点
-     *
-     * @param allMenu
-     * @param parents
-     */
-    private void appendNode(List<Menu> allMenu, List<Menu> parents) {
-        for (Menu parent : parents) {
-
-            List<Menu> temp = new ArrayList<>();
-
-            if (allMenu.isEmpty()) {
-                break;
-            }
-
-            for (Menu menu : allMenu) {
-                if (menu.getParentId().equals(parent.getId())) {
-                    temp.add(menu);
-                }
-            }
-
-            if (!temp.isEmpty()) {
-                parent.setSubMenu(temp);
-                allMenu.removeAll(temp);
-
-                //递归填充子节点
-                appendNode(allMenu, temp);
-            }
-
-        }
-    }
-
-
-
-
-    private void checkMenu(List<MenuNode> menu, List<Menu> roleMenu) {
-
-        if (roleMenu.isEmpty()) {
-            return;
-        }
-
-        for (Menu sysMenu : roleMenu) {
-            for (MenuNode node : menu) {
-
-                if (sysMenu.getId().equals(node.getId())) {
-                    node.setCheck(true);
-                }else{
-                    node.setCheck(false);
-                }
-
-                if (!node.getSubs().isEmpty()) {
-                    checkMenu(node.getSubs(), roleMenu);
-                }
-
-                continue;
-            }
-        }
-
-    }
-
-    /**
-     * 获取所有可用的目录树
-     *
-     * @return
-     */
-    public List<MenuNode> getMenuByRid(Long rid) {
-
-        List<MenuNode> menu = getActiveMenuTree();
-
-        List<Menu> roleMenu = menuMapper.findByRid(rid);
-        //设置目录选中
-        checkMenu(menu, roleMenu);
-
-        return menu;
-    }
-
-    public List<BootstrapTreeNode> getTreeViewNode(Long rid) {
-
-        List<MenuNode> menu = getMenuByRid(rid);
-
-        List<BootstrapTreeNode> treeViewNode = new ArrayList<>();
-
-        pullTreeViewNode(menu, treeViewNode);
-
-        return treeViewNode;
-    }
-
-    /**
-     * 填充树节点
-     *
-     * @param menu
-     * @param treeViewNode
-     */
-    private void pullTreeViewNode(List<MenuNode> menu, List<BootstrapTreeNode> treeViewNode) {
-
-        for (MenuNode node : menu) {
-
-            BootstrapTreeNode viewNode = new BootstrapTreeNode(node);
-            treeViewNode.add(viewNode);
-
-            if (!node.getSubs().isEmpty()) {
-                List<BootstrapTreeNode> temp = new ArrayList<>();
-                viewNode.setNodes(temp);
-                pullTreeViewNode(node.getSubs(), temp);
-            }
-
-        }
-    }
-
-    public List<BootstrapTreeNode> getTreeViewNode() {
-
-        List<MenuNode> menu = getActiveMenuTree();
-
-        List<BootstrapTreeNode> treeViewNode = new ArrayList<>();
-
-        pullTreeViewNode(menu, treeViewNode);
-
-        return treeViewNode;
-    }
-
-    /**
-     *  通过用户
      * @param userId
      * @return
      */
-    public List<MenuNode> getMenusByUserId(String userId) {
+    public List<Menu> getMenuTreeByUserId(String userId) {
 
         List<Menu> menuList = menuMapper.findByUserId(userId);
+        List<Menu> resultMenuTree = getMenuTree(menuList);
 
-        return getMenuTree(menuList);
+        return resultMenuTree;
     }
+
+    /**
+     * 获取当前有效的所有目录的目录树
+     *
+     * @return
+     */
+    public List<Menu> getActiveMenuTree() {
+
+        List<Menu> menuList = menuMapper.findAllByStatus(1);
+        List<Menu> resultMenuTree = getMenuTree(menuList);
+
+        return resultMenuTree;
+    }
+
+    /**
+     * 获取MenuTree
+     *
+     * @param menuList 可见Menu
+     * @return
+     */
+    private List<Menu> getMenuTree(List<Menu> menuList) {
+        Map<Long, Menu> menuMap = new HashMap<>(menuList.size());
+        menuList.forEach(obj -> {
+            menuMap.put(obj.getId(), obj);
+        });
+
+        List<TreeNode> activeTree = treeService.getTree(Menu.class.getSimpleName(), 1);
+        List<Menu> resultMenuTree = new ArrayList<>();
+
+        // 配置填充子节点
+        appendMenuNode(menuMap, activeTree, resultMenuTree);
+        return resultMenuTree;
+    }
+
+    /**
+     * 填充MenuTree
+     *
+     * @param menuMap
+     * @param activeTree
+     * @param resultMenuTree
+     */
+    private void appendMenuNode(Map<Long, Menu> menuMap, List<TreeNode> activeTree, List<Menu> resultMenuTree) {
+        activeTree.forEach(obj -> {
+            Menu entity = menuMap.get(obj.getEntityId());
+            if (null == entity) {
+                return;
+            }
+            resultMenuTree.add(entity);
+
+            // 配置父级节点
+            Menu parentNode = menuMap.get(obj.getParentEntityId());
+            if (null != parentNode) {
+                // 清除子节点关联，避免级联死循环
+                Menu temp = new Menu();
+                ReflectUtils.updateFieldByClass(parentNode, temp);
+                entity.setParentMenu(temp);
+            }
+
+            if (!obj.getSubTreeNodes().isEmpty()) {
+                List<Menu> treeMenu = new ArrayList<>();
+                entity.setSubMenus(treeMenu);
+                // 递归添加子节点
+                appendMenuNode(menuMap, obj.getSubTreeNodes(), treeMenu);
+            }
+        });
+    }
+
+    @Transactional(rollbackOn = Exception.class)
+    public Menu persist(MenuAddForm form) {
+        Menu entity = form.trainToEntity();
+        entity.setStatus(1);
+        entity.setCreateTime(new Date());
+
+        menuMapper.save(entity);
+
+        Long entityId = entity.getId();
+        if (null == entityId) {
+            throw new FormValidException("持久化目录失败！");
+        }
+
+        Long parentId = form.getParentId() == null ? 0L : form.getParentId();
+
+        TreeNode node = new TreeNode();
+        node.setCreateTime(new Date());
+        node.setEntityName(entity.getName());
+        node.setStatus(1);
+        node.setEntityKey(Menu.class.getSimpleName());
+        node.setEntityId(entityId);
+        node.setParentId(parentId);
+
+        // 保存Node节点
+        treeService.saveTreeNode(node, form.getAfterMenuId());
+
+        if (null == node.getId()) {
+            throw new FormValidException("持久化树节点失败！");
+        }
+
+        return entity;
+    }
+
+    @Transactional(rollbackOn = Exception.class)
+    public Menu modify(MenuUpdateForm form) {
+
+        Menu temp = form.trainToEntity();
+        Menu entity = menuMapper.findOne(form.getId());
+        ReflectUtils.updateFieldByClass(temp, entity);
+        menuMapper.update(entity);
+        // 更新树节点排序
+        treeService.modifyTreeNode(form.getId(), form.getParentId(), form.getAfterMenuId(), entity.getName(), Menu.class.getSimpleName());
+
+        return entity;
+    }
+
+    public List<BootstrapTreeNode> getBootstrapTreeByRoleId(Long rid) {
+
+        List<Menu> list = menuMapper.findByRid(rid);
+        Set<Long> ids = new HashSet<>(list.size());
+        list.forEach(obj -> {
+            ids.add(obj.getId());
+        });
+
+        return treeService.getBootstrapTree(treeService.getTree(Menu.class.getSimpleName(), 1), ids);
+    }
+
 }

@@ -6,8 +6,8 @@ import com.example.hrh.module.sys.dao.jpas.DictionaryMapper;
 import com.example.hrh.module.sys.dao.jpas.RoleMapper;
 import com.example.hrh.module.sys.dao.jpas.UserEntityMapper;
 import com.example.hrh.module.sys.dao.jpas.UserGroupMapper;
-import com.example.hrh.module.sys.dto.json.roles.RoleInfo;
-import com.example.hrh.module.sys.dto.json.user.UserWithUserGroup;
+import com.example.hrh.module.sys.dto.json.roles.RoleItem;
+import com.example.hrh.module.sys.dto.json.user.UserInfo;
 import com.example.hrh.module.sys.dto.json.usergroup.UserGroupInfo;
 import com.example.hrh.module.sys.dto.json.usergroup.UserGroupItem;
 import com.example.hrh.module.sys.dto.json.usergroup.UserGroupWithRoles;
@@ -72,19 +72,19 @@ public class UserGroupService {
         entity.getRoles().forEach(obj -> {
             roleIdSet.add(obj.getId());
         });
-        Map<String, List<RoleInfo>> roleMap = new HashMap<>(entity.getRoles().size());
+        Map<String, List<RoleItem>> roleMap = new HashMap<>(entity.getRoles().size());
 
         roles.forEach(obj -> {
             if (null == obj.getType()) {
                 return;
             }
-            List<RoleInfo> temp = roleMap.get(String.valueOf(obj.getType()));
+            List<RoleItem> temp = roleMap.get(String.valueOf(obj.getType()));
             if (null == temp) {
                 temp = new ArrayList<>();
                 roleMap.put(String.valueOf(obj.getType()), temp);
             }
 
-            RoleInfo info = new RoleInfo();
+            RoleItem info = new RoleItem();
             info.setId(obj.getId());
             info.setRoleFlag(obj.getRoleFlag());
             info.setName(obj.getName());
@@ -96,7 +96,7 @@ public class UserGroupService {
         });
         //替换value -> name
 
-        Map<String, List<RoleInfo>> tempMap = new HashMap<>(roleMap.size());
+        Map<String, List<RoleItem>> tempMap = new HashMap<>(roleMap.size());
         Map<String, String> typeNameMap = roleService.getEntityType();
         roleMap.forEach((key, value) -> {
             tempMap.put(typeNameMap.get(key), value);
@@ -147,7 +147,7 @@ public class UserGroupService {
         return info;
     }
 
-    public UserWithUserGroup getUserWithUserGroup(String userId) {
+    public UserInfo getUserWithUserGroup(String userId) {
 
         UserEntity userEntity = userEntityMapper.findUserWithUserGroups(userId);
         if (null == userEntity) {
@@ -194,13 +194,16 @@ public class UserGroupService {
             entityList.add(item);
         });
 
-        UserWithUserGroup userWithUserGroup = new UserWithUserGroup();
-        userWithUserGroup.setUser(userEntity);
-        userWithUserGroup.setGroupMaps(userGroupMaps);
+        UserInfo userInfo = new UserInfo();
+        userInfo.setUser(userEntity);
+
+        // 关联用户组
+        userInfo.setGroupMaps(userGroupMaps);
 
         // 关联目录
-        userWithUserGroup.setMenuList(menuService.getMenusByUserId(userId));
+        userInfo.setMenuList(menuService.getMenuTreeByUserId(userId));
 
-        return userWithUserGroup;
+        userInfo.setRoleMaps(roleService.getRoleMapByUserId(userId));
+        return userInfo;
     }
 }

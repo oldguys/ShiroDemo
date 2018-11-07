@@ -2,7 +2,7 @@ package com.example.hrh.module.sys.dto.json.usergroup;
 
 
 import com.example.hrh.module.sys.dao.entities.UserGroup;
-import com.example.hrh.module.sys.dto.json.roles.RoleInfo;
+import com.example.hrh.module.sys.dto.json.roles.RoleItem;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,7 @@ public class UserGroupWithRoles {
 
     private UserGroup userGroup;
 
-    private Map<String,List<RoleInfo>> roleMap;
+    private Map<String,List<RoleItem>> roleMap;
 
     public UserGroup getUserGroup() {
         return userGroup;
@@ -26,11 +26,11 @@ public class UserGroupWithRoles {
         this.userGroup = userGroup;
     }
 
-    public Map<String, List<RoleInfo>> getRoleMap() {
+    public Map<String, List<RoleItem>> getRoleMap() {
         return roleMap;
     }
 
-    public void setRoleMap(Map<String, List<RoleInfo>> roleMap) {
+    public void setRoleMap(Map<String, List<RoleItem>> roleMap) {
         this.roleMap = roleMap;
     }
 }

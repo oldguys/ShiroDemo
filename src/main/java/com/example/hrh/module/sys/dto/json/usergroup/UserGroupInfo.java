@@ -4,7 +4,6 @@ package com.example.hrh.module.sys.dto.json.usergroup;/**
 
 import com.example.hrh.module.sys.dao.entities.Role;
 import com.example.hrh.module.sys.dao.entities.UserGroup;
-import com.example.hrh.module.sys.dto.json.roles.RoleInfo;
 
 import java.util.List;
 import java.util.Map;

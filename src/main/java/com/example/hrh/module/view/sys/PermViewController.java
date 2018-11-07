@@ -33,4 +33,9 @@ public class PermViewController {
     public String userPerm(){
         return "sys/user_perm";
     }
+
+    @RequestMapping("menu/page")
+    public String menuIndex(){
+        return "sys/menu";
+    }
 }

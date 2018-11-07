@@ -12,11 +12,125 @@
 		${prefix}.`name`,
 		${prefix}.url,
 		${prefix}.create_time,
-		${prefix}.parent_id,
-		${prefix}.`order`,
 		${prefix}.icon,
 		${prefix}.`status`
 	</sql>
+
+	<sql id="one_entity">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		<include refid="table_name"/> a
+		WHERE
+		a.id = #{id}
+	</sql>
+
+	<select id="findOne" parameterType="long" resultType="Menu">
+		<include refid="one_entity"/>
+	</select>
+
+	<resultMap id="EntityInfo" type="Menu">
+		<id column="id" property="id"/>
+		<association property="parentMenu" column="parent_entity_id" select="com.example.hrh.module.sys.dao.jpas.MenuMapper.finOne"/>
+	</resultMap>
+
+	<select id="findInfo" parameterType="long" resultMap="EntityInfo">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		,parent_entity_id
+		FROM
+		sys_menu a
+		INNER JOIN sys_tree_node b ON a.id = b.entity_id
+		WHERE
+		b.entity_key = 'Menu'
+		AND a.id = #{id}
+	</select>
+
+	<resultMap id="ParentEntityInfo" type="com.example.hrh.module.sys.dto.json.menu.MenuInfoItem">
+		<id column="id" property="id"/>
+		<collection property="subMenus" column="id" select="com.example.hrh.module.sys.dao.jpas.MenuMapper.findByParentId"/>
+	</resultMap>
+
+	<select id="findByParentId" parameterType="long" resultType="Menu">
+		SELECT
+		<include refid="all_entity_columns">
+			<property name="prefix" value="a"/>
+		</include>
+		FROM
+		sys_menu a
+		INNER JOIN sys_tree_node b ON a.id = b.entity_id
+		WHERE
+		entity_key = 'Menu'
+		AND a.`status` = 1
+		AND b.parent_entity_id = #{id}
+	</select>
+
+	<select id="findOneWithSubMenus" parameterType="long" resultMap="ParentEntityInfo">
+		SELECT
+		a.id,
+		a.`name`,
+		a.icon,
+		a.`status`,
+		a.`status`,
+		a.create_time,
+		b.parent_id,
+		b.parent_name
+		FROM
+		<include refid="table_name"/> a
+		INNER JOIN (
+		SELECT
+		a.id,
+		a.entity_id,
+		b.id parent_id,
+		b.`name` parent_name
+		FROM
+		sys_tree_node a
+		LEFT JOIN <include refid="table_name"/> b ON a.parent_entity_id = b.id
+		WHERE
+		entity_key = 'Menu'
+		) b ON a.id = b.entity_id
+		WHERE
+		a.`status` = 1
+		AND a.id = #{id}
+	</select>
+
+	<select id="findWithInfoByStatus" parameterType="integer" resultType="com.example.hrh.module.sys.dto.json.menu.MenuInfoItem">
+		SELECT
+		a.id,
+		a.`name`,
+		a.icon,
+		a.`status`,
+		a.`status`,
+		a.create_time,
+		b.parent_id,
+		b.parent_name
+		FROM
+		<include refid="table_name"/> a
+		INNER JOIN (
+		SELECT
+		a.id,
+		a.entity_id,
+		b.id parent_id,
+		b.`name` parent_name
+		FROM
+		sys_tree_node a
+		LEFT JOIN <include refid="table_name"/> b ON a.parent_entity_id = b.id
+		WHERE
+		entity_key = 'Menu'
+		) b ON a.id = b.entity_id
+		<where>
+			<if test="status != null " >
+				a.`status` = #{status}
+			</if>
+			<if test="parentId != null and parentId != 0">
+				AND b.parent_id = #{parentId}
+			</if>
+		</where>
+	</select>
 
 	<select id="findAllByStatus" parameterType="integer" resultType="Menu">
 		SELECT
@@ -33,6 +147,7 @@
 			</choose>
 		</where>
 	</select>
+
 
 	<select id="findByRid" parameterType="long" resultType="Menu">
 		SELECT
@@ -62,27 +177,43 @@
 		AND a.`status` = 1
 	</select>
 
+
 	<insert id="save" parameterType="Menu" keyProperty="id" useGeneratedKeys="true">
 		INSERT <include refid="table_name"/>
 		(
-			`name`,
-			url,
-			create_time,
-			parent_id,
-			`order`,
-			icon,
-			`status`
+		`name`,
+		url,
+		create_time,
+		icon,
+		`status`
 		)
 		VALUES (
-			#{name},
-			#{url},
-			#{createTime},
-			#{parentId},
-			#{order},
-			#{icon},
-			#{status}
+		#{name},
+		#{url},
+		#{createTime},
+		#{icon},
+		#{status}
 		)
 	</insert>
 
+	<update id="update" parameterType="Menu">
+		UPDATE <include refid="table_name"/>
+		SET
+			`name` = #{name},
+			url = #{url},
+			icon = #{icon},
+			`status` = #{status}
+		WHERE
+			id = #{id}
+	</update>
+
+	<update id="updateStatus">
+		UPDATE
+		<include refid="table_name"/>
+		SET
+		`status` = #{status}
+		WHERE
+		id = #{id}
+	</update>
 
 </mapper>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>目录管理</title>
+    <span th:include="commons/templates :: common-css-js"></span>
+    <span th:include="commons/templates :: init-menu"></span>
+    <span th:include="commons/templates :: bootstrap-treeview"></span>
+    <span th:include="commons/templates :: bootstrap-table"></span>
+    <style>
+        #menu-info .list-group-item {
+            border: none;
+        }
+
+        .sort:hover {
+            color: #a94442;;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="commons/templates :: header"></div>
+<div class="container">
+    <div class="page-header">
+        <h3>目录管理<a class="btn btn-default pull-right" id="add-btn">新增</a></h3>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <h4>目录</h4>
+            <div id="menu-info" style="margin-top: 24px;"></div>
+        </div>
+        <div class="col-md-9">
+            <div class="panel panel-default" id="parent-node-panel" style="display: none;">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-9 h5">父节点</div>
+                    </div>
+                    <div class="row" style="margin-left: 20px;">
+                        <div class="col-md-2" id="parent-entity-id"></div>
+                        <div class="col-md-3" id="parent-entity-name"></div>
+                        <div class="col-md-4" id="parent-entity-createTime"></div>
+                        <div class="col-md-2" id="parent-entity-btn"></div>
+                    </div>
+                </div>
+            </div>
+            <table id="records-info"></table>
+        </div>
+    </div>
+</div>
+
+</body>
+<!-- 目录实体框 -->
+<div class="modal fade" id="edit-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">新建目录</h4>
+            </div>
+            <div class="modal-body">
+                <form id="menu-form">
+                    <div class="form-group">
+                        <label class="control-label">ID:</label>
+                        <input type="text" class="form-control" name="id" id="menu-id">
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">目录名:</label>
+                        <input type="text" class="form-control" name="name" id="menu-name" autocomplete="off">
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">父级目录:</label>
+                        <!--<input type="text" class="form-control" id="menu-label">-->
+                        <select id="menu-parent" class="form-control" name="parentId">
+                            <option value="0">根目录</option>
+                        </select>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">排序:(位于节点之后)</label>
+                        <select id="menu-sortOrder" class="form-control" name="afterMenuId">
+                        </select>
+                        <span class="help-block"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">创建时间:</label>
+                        <input type="text" class="form-control" name="createTime" id="menu-createTime"
+                               autocomplete="off">
+                        <span class="help-block"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-default" id="btn-update">更新</button>
+                <button type="button" class="btn btn-default" id="btn-addition">新增</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<!-- 排序框 -->
+<div class="modal fade" id="sort-panel" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">文档排序</h4>
+            </div>
+            <div class="modal-body">
+                <ol class="list-group" id="sort-list"></ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-info" id="btn-update-sort">更新</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script th:inline="text">
+
+    // 目录数据，来自ajax
+    var menuData;
+
+    /**
+     *  递归配置选项目录
+     * */
+    function foreachAppendOptions(data, options, space) {
+        return circleAppend(data, options, space + "&nbsp;&nbsp;");
+    }
+
+    function circleAppend(data, options, space) {
+        for (var i = 0; i < data.length; i++) {
+            var node = data[i];
+            var value = node['id'];
+            var name = node['text'];
+
+            options = options + "<option value='" + value + "'>" + space + name + "</option>";
+            var subNodes = node['nodes'];
+            if (subNodes != undefined && subNodes.length > 0) {
+                options = foreachAppendOptions(subNodes, options, space + "&nbsp;&nbsp;");
+            }
+        }
+        return options;
+    }
+
+    function appendOptions(data) {
+//        var options = "<option value='0'>根目录</option>"
+        var options = "";
+        if (data.length > 0) {
+            options = circleAppend(data, options, "");
+        }
+        $("#menu-parent").empty().append(options);
+    }
+
+    // 选择父级监听
+    var selectFlag = false;
+    var selectItemValue;
+    /***
+     *  配置排序监听
+     **/
+    $("#menu-parent").on("change", function () {
+        var id = $(this).val();
+
+        $.get("[[@{/menu/}]]" + id + "/subMenu", function (data) {
+            $("#menu-sortOrder").empty();
+            $("#menu-sortOrder").append('<option value="-1">列尾</option>');
+            $("#menu-sortOrder").append('<option value="0">列首</option>');
+
+            if (data['subMenus'] != undefined) {
+                var subMenu = data['subMenus'];
+                var optionStr = "";
+                for (var i = 0; i < subMenu.length; i++) {
+                    var node = subMenu[i];
+
+                    console.log(node);
+                    optionStr += "<option value='" + node['id'] + "'> " + (i + 1) + ". " + node['name'] + "</option>";
+                }
+                $("#menu-sortOrder").append(optionStr);
+            } else {
+                var index = 1;
+                for (var i = 0; i < menuData.length; i++) {
+                    var node = menuData[i];
+                    if (node['text'] == '根目录') {
+                        continue;
+                    } else {
+                        index = 0;
+                    }
+                    $("#menu-sortOrder").append("<option value='" + node['id'] + "'> " + (index + i) + ". " + node['text'] + "</option>")
+                }
+            }
+
+            if (selectFlag) {
+                $("select[name=afterMenuId]").find("option[value='" + selectItemValue + "']").prev().prop('selected', true);
+//                $("select[name=afterMenuId]").find("option[value='" + selectItemValue + "']").next().prop('selected', true);
+            }
+
+        })
+    })
+
+    /**
+     *  刷新表格
+     * @param data
+     */
+    function tableDisplay(data) {
+        $("#records-info").bootstrapTable("removeAll").bootstrapTable("append", data);
+    }
+    /**
+     * 配置目录树
+     **/
+    function getMenuTree() {
+        $.get("[[@{/menu/bootstrap/tree?display=display}]]", function (data) {
+            menuData = data;
+            $("#menu-info").treeview({
+                data: data,// 赋值
+                highlightSelected: true,// 选中项不高亮，避免和上述制定的颜色变化规则冲突
+                multiSelect: false,// 不允许多选，因为我们要通过check框来控制
+                showCheckbox: false,// 展示checkbox
+                highlightSearchResults: true, // 高亮查询结果
+                levels: 10, // 展开级别
+                searchResultBackColor: '#CCC', // 查找背景
+                showTags: true,
+                onNodeSelected: function (event, data) {
+                    var parentId = data['id'];
+                    console.log(parentId);
+                    if (parentId != 0) {
+                        $.get("[[@{/menu/all}]]" + "?parentId=" + parentId, function (data) {
+
+                            $("#parent-entity-id").text("ID:"+data['id']);
+                            $("#parent-entity-name").text("名称:"+data['name']);
+                            $("#parent-entity-createTime").text("创建时间:"+data['createTime']);
+                            $("#parent-entity-btn").empty().append(setNodeBtn(data));
+                            $("#parent-node-panel").show();
+                            var subMenus = data['subMenus'];
+//                            tableDisplay(subMenus);
+                            if(subMenus != undefined){
+                                tableDisplay(subMenus);
+                            }
+                        })
+                        return;
+                    }
+                    $("#parent-node-panel").hide();
+                    $.get("[[@{/menu/all}]]", function (data) {
+                        tableDisplay(data);
+                    })
+                }
+            });
+
+            // 初始化选项目录
+            appendOptions(data);
+            // 初始化一般排序
+            $("#menu-parent").trigger("change");
+        })
+    }
+
+    /**
+     * 设置节点
+     */
+    function setNodeBtn(data) {
+
+        var id = data['id'];
+        var parentId = data['parentId'];
+
+        var str = ' <button class="btn btn-default btn-edit" title="编辑"' +
+            'data-toggle="tooltip" data-placement="left" data-value="' + id + '" parent-id ="' + parentId + '">  ' +
+            '  <i class="glyphicon glyphicon-pencil"></i>  ' +
+            ' </button>  ';
+        if (data['status'] == 1) {
+            str += '<a class="btn btn-default btn-state" title="编辑状态" data-state="0" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                '  <i class="glyphicon glyphicon-ok text-success"></i>  ' +
+                ' </a>  ';
+        } else {
+            str += ' <a class="btn btn-default btn-state" title="编辑状态" data-state="1" data-toggle="tooltip" data-placement="left" data-id="' + id + '" >  ' +
+                '  <i class="glyphicon glyphicon-remove text-danger"></i>  ' +
+                ' </a>  ';
+        }
+
+        return str;
+    }
+
+    $('#records-info').bootstrapTable({
+        url: "[[@{/menu/all}]]",//请求数据url
+        showRefresh: true,
+//        smartDisplay: true,
+//        showToggle: true,
+        // showExport:true,
+        paginationPreText: '上一页',
+        paginationNextText: '下一页',
+        pagination: true,//分页
+//        sidePagination: 'server',//服务器端分页
+        paginationVAlign: 'bottom',
+        pageNumber: 1,
+        pageSize: 30,
+        pageList: [10, 20, 30, 50, 'all'],//分页步进值
+        search: true, //显示搜索框
+
+        columns: [
+            {
+                field: 'id',
+                title: '编号',
+                sortable: true
+            },
+            {
+                field: 'name',
+                title: '目录名',
+                sortable: true
+            }, {
+                field: 'createTime',
+                title: '创建时间',
+                sortable: true
+            },
+            {
+                field: 'icon',
+                title: '图标',
+            },
+            {
+                title: '父级目录',
+                sortable: true,
+                formatter: function (value, row, index) { // 单元格格式化函数
+
+                    var parentId = row['parentId'];
+                    var parentName = row['parentName'];
+
+                    if (parentId == undefined || parentName == undefined) {
+                        return "-";
+                    }
+
+                    return parentId + " - " + parentName;
+                }
+            },
+            {
+                field: 'status',
+                title: '状态',
+                formatter: function (value, row, index) { // 单元格格式化函数
+
+                    if (value == 1) {
+                        return "<span class='text-success'>可用</span>"
+                    }
+                    if (value == 0) {
+                        return "<span class='text-danger'>禁用</span>"
+                    }
+                    return value;
+                }
+            },
+            {
+                title: '编辑',
+                width: "102px",
+                formatter: function (value, row, index) { // 单元格格式化函数
+
+                    return setNodeBtn(row);
+                }
+            },
+        ]
+    })
+
+
+    /**
+     *  编辑更新状态
+     */
+    $("#records-info,#parent-node-panel").on("click", ".btn-state", function () {
+        var state = $(this).attr("data-state");
+        var id = $(this).attr("data-id");
+
+        var node = $(this);
+
+
+        $.post("[[@{/menu/}]]" + id + "/" + state, function (data) {
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                getMenuTree();
+                $("#parent-node-panel").hide();
+
+            }
+        })
+    })
+
+    /***
+     * 初始化方法 ==========================
+     **/
+    $(function () {
+        //初始化树目录
+        getMenuTree();
+    })
+
+    /***
+     * 新增按钮 =============================
+     **/
+    $("#add-btn").click(function () {
+        $("#menu-id").val("").prop("readOnly", false);
+        $("#menu-name").val("");
+        $("#menu-value").val("");
+        $("#menu-status").val("");
+
+        // 新增界面
+        $($("#menu-createTime").parent(".form-group")[0]).hide();
+        $($("#menu-status").parent(".form-group")[0]).hide();
+        $($("#menu-id").parent(".form-group")[0]).hide();
+        $("#btn-addition").show();
+        $("#btn-update").hide();
+        $("#edit-panel>.modal-title").text("<b>新建目录</b>")
+        $("#edit-panel").modal("show");
+
+        // 不触发选择
+        selectFlag = false;
+        $("#edit-panel .modal-title").text("新增目录");
+    })
+
+    /**
+     *  新增请求
+     */
+    $("#btn-addition").click(function () {
+        $.post("[[@{/menu/addition}]]", $("#menu-form").serializeArray(), function (data) {
+            console.log(data)
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                $("#edit-panel").modal("hide");
+                // 刷新树已经填写界面
+                getMenuTree();
+            }
+        })
+    })
+
+    /**
+     *  更新按钮 ===============================================
+     */
+    $("#records-info,#parent-node-panel").on("click", ".btn-edit", function () {
+        var id = $(this).attr("data-value");
+        var parentId = $(this).attr("parent-id");
+
+        parentId = parentId == "null" ? "0" : parentId;
+
+        selectFlag = true;
+        selectItemValue = id;
+        // 选择父级目录
+        if (parentId != "" && parentId != "0") {
+            $("select[name=parentId]").find("option[value='" + parentId + "']").prop('selected', true);
+            $("#menu-parent").trigger("change");
+        } else {
+            $("select[name=parentId]").find("option[value='0']").prop('selected', true);
+            $("#menu-parent").trigger("change");
+        }
+
+        // 获取表单数据
+        $.get("[[@{/menu/}]]" + id + "/info", function (data) {
+            $("#menu-id").val(data['id']).prop("readOnly", true);
+            $("#menu-name").val(data['name']);
+            $("#menu-createTime").val(data['createTime']).prop("readOnly", true);
+            $("#menu-status").val(data['status']);
+        })
+
+
+        // 更新界面
+        $($("#menu-createTime").parent(".form-group")[0]).show();
+        $($("#menu-id").parent(".form-group")[0]).show();
+        $($("#menu-status").parent(".form-group")[0]).show();
+
+        $("#btn-addition").hide();
+        $("#btn-update").show();
+        // CSS3 选择器区别
+        $("#edit-panel .modal-title").text("编辑目录");
+
+        $("#edit-panel").modal("show");
+    })
+
+    $("#btn-update").click(function () {
+        $.post("[[@{/menu/modify}]]", $("#menu-form").serializeArray(), function (data) {
+            console.log(data)
+            if (data['status'] == 'OK') {
+                $('#records-info').bootstrapTable("refresh");
+                $("#edit-panel").modal("hide");
+                // 刷新树已经填写界面
+                getMenuTree();
+            }
+        })
+    })
+
+
+</script>
+
+</html>

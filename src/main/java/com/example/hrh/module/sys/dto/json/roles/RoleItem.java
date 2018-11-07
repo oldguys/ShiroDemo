@@ -8,7 +8,7 @@ package com.example.hrh.module.sys.dto.json.roles;
  * @date 2017年12月19日 下午4:44:46 
  * @version V1.0
  */
-public class RoleInfo {
+public class RoleItem {
 
 	private Long id;
 
@@ -62,7 +62,7 @@ public class RoleInfo {
 
 	@Override
 	public String toString() {
-		return "RoleInfo{" +
+		return "RoleItem{" +
 				"id=" + id +
 				", name='" + name + '\'' +
 				", roleFlag='" + roleFlag + '\'' +
