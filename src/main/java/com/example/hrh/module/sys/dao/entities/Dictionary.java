@@ -72,8 +72,7 @@ public class Dictionary extends BaseEntity{
 
         ROLE_TYPE("role-type","权限-角色类型"),
         USER_GROUP_TYPE("group-type","权限-用户组类型"),
-        MENU_TYPE("menu-type","目录类型"),
-        MENU_TOP_NODE_TYPE("menu-top-node-type","目录类型"),
+        MENU_TYPE("menu-type","目录类型")
         ;
         private String name;
 

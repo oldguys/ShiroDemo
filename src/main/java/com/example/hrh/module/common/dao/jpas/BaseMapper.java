@@ -15,12 +15,31 @@ import java.util.Set;
  */
 public interface BaseMapper<T, S> {
 
+    /**
+     *  批量持久化
+     * @param collection
+     * @return
+     */
     int saveBatch(@Param("collections") Collection<T> collection);
 
+    /**
+     *  持久化
+     * @param entity
+     * @return
+     */
     int save(T entity);
 
+    /**
+     *  更新
+     * @param entity
+     * @return
+     */
     int update(T entity);
 
+    /**
+     *  获取所有集合
+     * @return
+     */
     Set<S> findIds();
 
     /**
@@ -30,5 +49,9 @@ public interface BaseMapper<T, S> {
      */
     T findOne(S id);
 
+    /**
+     *  获取所有的元素
+     * @return
+     */
     List<T> findAll();
 }

@@ -1,6 +1,7 @@
 package com.example.hrh.module.sys.dto.form.menu;
 
 
+import com.example.hrh.module.common.dto.AbstractTreeForm;
 import com.example.hrh.module.common.dto.Form;
 import com.example.hrh.module.sys.dao.entities.Menu;
 import org.hibernate.validator.constraints.NotBlank;
@@ -11,7 +12,7 @@ import javax.validation.constraints.NotNull;
  * @author huangrenhao
  * @date 2018/8/24
  */
-public class MenuAddForm implements Form<Menu> {
+public class MenuAddForm extends AbstractTreeForm<Menu> {
 
     private String icon;
 
@@ -19,11 +20,6 @@ public class MenuAddForm implements Form<Menu> {
 
     @NotBlank(message = "目录标题不能为空")
     private String name;
-
-    private Long afterMenuId;
-
-    @NotNull(message = "父级ID不能为空")
-    private Long parentId;
 
     public String getIcon() {
         return icon;
@@ -47,22 +43,6 @@ public class MenuAddForm implements Form<Menu> {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Long getAfterMenuId() {
-        return afterMenuId;
-    }
-
-    public void setAfterMenuId(Long afterMenuId) {
-        this.afterMenuId = afterMenuId;
-    }
-
-    public Long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
     }
 
     @Override

@@ -164,7 +164,7 @@ public class TreeService {
         String entityKey = node.getEntityKey();
 
         // 顶级树
-        if (parentId == 0L) {
+        if (null == parentId || parentId == 0L) {
 
             node.setParentEntityId(parentId);
             node.setParentId(parentId);
