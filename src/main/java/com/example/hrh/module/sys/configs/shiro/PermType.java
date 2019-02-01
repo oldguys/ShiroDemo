@@ -13,7 +13,8 @@ import java.util.List;
 public enum PermType {
 
     ADMIN("admin", "超级管理员"),
-    SUB_ADMIN("sub_admin", "管理员");
+    SUB_ADMIN("sub_admin", "管理员"),
+    JDBC_FLAG("jdbc-flag", "JDBC管控");
 
     PermType(String flag, String value) {
         this.flag = flag;

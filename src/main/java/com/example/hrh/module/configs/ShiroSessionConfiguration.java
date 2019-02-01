@@ -19,6 +19,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ShiroSessionConfiguration {
 
+    /**
+     *  自定义Session DAO
+     * @return
+     */
     @Bean
     public ShiroSessionDAO shiroSessionDAO(){
         return new ShiroSessionDAO();

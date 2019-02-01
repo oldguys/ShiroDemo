@@ -34,5 +34,4 @@ public class ShiroExceptionHandle {
         return "没有授权登录。。。。。";
     }
 
-
 }

@@ -1,62 +1,23 @@
-package com.example.hrh.module.configs;/**
- * Created by Administrator on 2018/10/17 0017.
- */
-
-import com.example.hrh.module.sys.configs.shiro.ShiroCredentialsMatcher;
-import com.example.hrh.module.sys.configs.shiro.ShiroRealm;
-import com.example.hrh.module.sys.interceptors.ShiroPermFilter;
-import org.apache.commons.collections.map.HashedMap;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.credential.DefaultPasswordService;
-import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
-import org.apache.shiro.authc.credential.SimpleCredentialsMatcher;
-import org.apache.shiro.codec.Base64;
-import org.apache.shiro.codec.Hex;
-import org.apache.shiro.crypto.AesCipherService;
-
-import org.apache.shiro.session.mgt.eis.SessionDAO;
-import org.apache.shiro.spring.LifecycleBeanPostProcessor;
-import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
-import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
+#SpringBoot+Shiro 配置
 
 
-import org.apache.shiro.web.filter.authz.PermissionsAuthorizationFilter;
-import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
-import org.apache.shiro.web.filter.mgt.FilterChainManager;
-import org.apache.shiro.web.mgt.CookieRememberMeManager;
-import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-
-import org.apache.shiro.web.servlet.*;
-
-import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.util.StringUtils;
-
-import javax.servlet.Filter;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+> shiro是一款轻量级的RBAC权限框架，主要使用于权限管控。本文主要介绍shiro与SpringBoot集成的基本配置，以及一部分配置异常。
+>
+>GitHub  [https://github.com/oldguys/ShiroDemo](https://github.com/oldguys/ShiroDemo)
 
 
-/**
- * @Description:
- * @Author: ren
- * @CreateTime: 2018-10-2018/10/17 0017 13:48
- */
+######  基本配置
+1. 实现于:org.apache.shiro.realm.AuthorizingRealm 的Realm 用于登录校验以及授权
+2. 实现于:org.apache.shiro.authc.credential.SimpleCredentialsMatcher 用于密码校验
+3. org.apache.shiro.mgt.DefaultSecurityManager 权限管理
+4. org.apache.shiro.spring.LifecycleBeanPostProcessor 
+5. org.apache.shiro.spring.web.ShiroFilterFactoryBean shiro自带权限拦截器（shiro 自带的登录拦截，权限拦截等。）
+
+
+```
 @Configuration
 public class ShiroConfiguration {
 
-    /**
-     * @return
-     */
-    @Bean
-    public DefaultPasswordService passwordService() {
-        DefaultPasswordService bean = new DefaultPasswordService();
-        return bean;
-    }
 
     /**
      *  配置 密码认证器
@@ -73,7 +34,6 @@ public class ShiroConfiguration {
 //        SimpleCredentialsMatcher credentialsMatcher = new HashedCredentialsMatcher("SHA-256");
         return credentialsMatcher;
     }
-
     /**
      *  shiro的核心，所有的授权认证都在这里处理。
      *  此处使用自定义的认证器
@@ -114,6 +74,7 @@ public class ShiroConfiguration {
         return new LifecycleBeanPostProcessor();
     }
 
+
     /**
      *  权限拦截器
      *   主要用于管控URL拦截权限。
@@ -138,15 +99,20 @@ public class ShiroConfiguration {
         urlChainMap.put("/perm/normal","shiroPermFilter");
 
         bean.setFilterChainDefinitionMap(urlChainMap);
-
         return bean;
     }
 
-    public DefaultFilterChainManager defaultFilterChainManager(){
-        DefaultFilterChainManager bean = new DefaultFilterChainManager();
-        return bean;
-    }
+}
 
+```
+######  开启注解式配置（在基本配置的基础上进行配置）
+```
+
+@Configuration
+public class ShiroConfiguration {
+
+    // 省略基础配置部分.................................
+    
     /**
      * 开启注解式 权限拦截
      *
@@ -172,10 +138,70 @@ public class ShiroConfiguration {
         return bean;
     }
 
+}
+
+```
+
+实现Shiro自定义Realm
+```
+public class ShiroRealm extends AuthorizingRealm {
+
+    @Autowired
+    private UserEntityMapper userEntityMapper;
+    @Autowired
+    private RoleService roleService;
+
     /**
-     * RememberMe 配置
+     *  授权
+     * @param principals
+     * @return
      */
-    public class RememberMeConfiguration {
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+
+        String userId = (String) principals.getPrimaryPrincipal();
+        UserRoleFlag userRoleFlag = roleService.getUserRoleFlags(userId);
+
+        return new SimpleAuthorizationInfo(userRoleFlag.getRoleFlags());
+    }
+
+    /**
+     *  登录认证
+     * @param token
+     * @return
+     * @throws AuthenticationException
+     */
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+
+        String principal = (String) token.getPrincipal();
+        System.out.println("登录校验:" + principal);
+
+        UserEntity entity = userEntityMapper.findByUsername(principal);
+
+        if (null == entity) {
+            throw new UnknownAccountException("未找到该用户！");
+        }
+
+        System.out.println("获取到用户进行校验....");
+        return new SimpleAuthenticationInfo(principal, entity.getPassword(), getName());
+    }
+}
+```
+
+###### 扩展配置：配置RememberMe 配置
+
+属性文件 application.yml
+```
+shiro:
+  cipher-key: f/SY5TIve5WWzT4aQlABJA==
+  cookie-name: shiro-cookie
+```
+
+com.example.hrh.module.configs.ShiroConfiguration.RememberMeConfiguration
+扩展点: 内部类不需要 **@Configuration**，类中的  **@Bean** 依然会注入到Spring容器中
+```
+public class RememberMeConfiguration {
 
         @Value("${shiro.cookie-name}")
         private String COOKIE_NAME;
@@ -183,7 +209,7 @@ public class ShiroConfiguration {
         private String Base64CipherKey;
 
         /**
-         *  可选
+         *  可选 
          *  不配置会使用默认的cookie名称
          * @return
          */
@@ -229,5 +255,35 @@ public class ShiroConfiguration {
             return cookieRememberMeManager;
         }
     }
+```
+
+##### 配置自定义Session，例如实现redis统一Session。
+shiro默认使用org.apache.shiro.session.mgt.eis.MemorySessionDAO
+可以使用实现自定义Session类。
+```
+@Configuration
+public class ShiroSessionConfiguration {
+
+    /**
+     *  自定义Session DAO
+     * @return
+     */
+    @Bean
+    public ShiroSessionDAO shiroSessionDAO(){
+        return new ShiroSessionDAO();
+    }
+
+    @Bean
+    public DefaultWebSessionManager defaultWebSessionManager(DefaultWebSecurityManager securityManager,ShiroSessionDAO shiroSessionDAO) {
+
+        DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+        // 注入 到权限管理器
+        securityManager.setSessionManager(sessionManager);
+        // 配置 自定义 Session
+        sessionManager.setSessionDAO(shiroSessionDAO);
+        return sessionManager;
+    }
 
 }
+
+```

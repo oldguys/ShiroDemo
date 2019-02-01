@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * 	用户 超级管理员 权限AOP
- * @author King
+ * @author ren
  *
  */
 @Target(ElementType.METHOD)
@@ -17,7 +17,15 @@ import java.util.List;
 @Documented
 public @interface PermControl {
 
+	/**
+	 *  权限枚举
+	 * @return
+	 */
 	PermType[] value();
 
+	/**
+	 *  判定逻辑 OR & AND
+	 * @return
+	 */
 	Logical logical() default Logical.AND;
 }

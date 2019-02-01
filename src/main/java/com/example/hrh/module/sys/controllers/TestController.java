@@ -56,9 +56,7 @@ public class TestController {
     @RequiresRoles("admin")
     @RequestMapping("perm/admin")
     public String testAdmin() {
-
         System.out.println(SecurityUtils.getSubject().getPrincipal());
-
         return "admin权限";
     }
 
